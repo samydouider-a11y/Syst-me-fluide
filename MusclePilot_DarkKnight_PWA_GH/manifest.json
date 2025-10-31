@@ -1,0 +1,21 @@
+{
+  "name": "MusclePilot — Dark Knight",
+  "short_name": "MP Dark",
+  "description": "Programme + Tracker (pas & calories) avec coaching, sync Supabase/Sheets. PWA hors-ligne.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0e18",
+  "theme_color": "#00a8ff",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
