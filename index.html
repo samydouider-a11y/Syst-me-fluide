@@ -2,562 +2,90 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>MusclePilot — Dark Knight FUSION (Programme + Calories)</title>
+<title>MusclePilot — Dark Knight FUSION (Fallback)</title>
 <style>
-:root{
-  --bg:#0a0e18;--panel:#0b1325;--panel2:#0d1730;--border:#12203a;--muted:#7a8aa6;
-  --white:#e6eefc;--blue:#00a8ff;--yellow:#ffc700;--danger:#ff4d4d;--ok:#1be48b;--amber:#ffb300
-}
-*{box-sizing:border-box} body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
-  background:radial-gradient(900px 550px at 75% 8%, rgba(0,168,255,.10), rgba(0,0,0,0)),
-            radial-gradient(800px 520px at 15% 85%, rgba(255,199,0,.08), rgba(0,0,0,0)),var(--bg);
-  color:var(--white)
-}
+:root{--bg:#0a0e18;--panel:#0b1325;--border:#12203a;--muted:#7a8aa6;--white:#e6eefc;--blue:#00a8ff;--yellow:#ffc700;--danger:#ff4d4d;--ok:#1be48b}
+*{box-sizing:border-box} body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:
+radial-gradient(900px 550px at 75% 8%, rgba(0,168,255,.10), rgba(0,0,0,0)),
+radial-gradient(800px 520px at 15% 85%, rgba(255,199,0,.08), rgba(0,0,0,0)),var(--bg);color:var(--white)}
+#diag{position:fixed;left:8px;right:8px;top:8px;background:#111a33;border:1px solid #223; border-radius:12px;padding:8px 10px;z-index:9999;font-size:12px;color:#cde;display:none}
 .wrap{max-width:1180px;margin:0 auto;padding:16px}
-.header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px}
-.title{font-weight:900;font-size:22px;background:linear-gradient(90deg,var(--blue),#73e0ff,var(--yellow));
-  -webkit-background-clip:text;background-clip:text;color:transparent}
-.badge{border:1px solid var(--border);background:var(--panel2);padding:8px 10px;border-radius:12px;font-size:12px;color:var(--muted)}
-.tabs{display:flex;gap:8px;flex-wrap:wrap}
-.tab{padding:10px 14px;border:1px solid var(--border);background:rgba(255,255,255,.02);
-  border-radius:12px;color:var(--white);cursor:pointer}
-.tab.active{outline:1px solid #1f2d4a;background:linear-gradient(180deg,#0f1b33,#0b1325)}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin:12px 0;
-  box-shadow:0 0 0 1px rgba(0,168,255,.04) inset}
-.grid{display:grid;gap:12px}
-@media(min-width:760px){.grid.cols-2{grid-template-columns:1fr 1fr}.grid.cols-3{grid-template-columns:1fr 1fr 1fr}.grid.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#091020;color:var(--white)}
-.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.btn{padding:10px 14px;border:1px solid var(--border);background:#0e1830;color:#fff;border-radius:10px;cursor:pointer}
-.btn.primary{background:linear-gradient(90deg,var(--blue),#73e0ff);color:#051024;border-color:#167fb1}
-.btn.danger{background:#2a0f13;border-color:#5c1c24}
-.tile{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:14px;padding:10px;background:#0c162a}
-.hint{font-size:12px;color:var(--muted);margin-top:4px}
-.small{font-size:12px;color:var(--muted)}
-.kpi{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);background:#0c162a;border-radius:14px;padding:10px;align-items:flex-start}
-.kpi b{font-size:18px}
-.pill{font-size:11px;border:1px solid var(--border);padding:2px 8px;border-radius:999px;background:#0b1429;color:var(--muted)}
-.hr{height:1px;background:linear-gradient(90deg,transparent,#162644,transparent);margin:10px 0}
-.setbox{border:1px dashed #234;border-radius:10px;padding:8px}
-.bad{color:var(--danger)} .good{color:var(--ok)} .warn{color:var(--amber)}
-.chart{width:100%;height:220px;border:1px solid var(--border);border-radius:12px;background:#0c162a;position:relative}
-.chart svg{position:absolute;top:0;left:0;width:100%;height:100%}
-.legend{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--muted);margin-top:6px}
-legend dot{width:10px;height:10px;border-radius:50%;display:inline-block}
 </style>
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
+<script>
+// --- CDN fallback loader ---
+function loadScriptSequence(urls, cb){
+  const tryNext=(i)=>{
+    if(i>=urls.length){ cb(new Error('All CDNs failed: '+urls.join(', '))); return; }
+    const s=document.createElement('script'); s.src=urls[i]; s.async=false;
+    s.onload=()=>cb(null, urls[i]); s.onerror=()=>tryNext(i+1);
+    document.head.appendChild(s);
+  };
+  tryNext(0);
+}
+function showDiag(msg){ var d=document.getElementById('diag'); d.style.display='block'; d.textContent=msg; }
+</script>
 </head>
 <body>
+<div id="diag">Chargement…</div>
 <div id="root"></div>
 
-<script type="text/babel">
-const {useState,useEffect,useMemo,useRef} = React;
-// ---------- Utils & State ----------
-const round=(n,d=0)=>Number(n.toFixed(d));
-function useLocal(key,init){const [v,setV]=useState(()=>{try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):init}catch{return init}});useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(v))}catch{}},[key,v]);return [v,setV]}
-function dayKey(d=new Date()){return d.toISOString().slice(0,10)}
-function getISOWeek(date=new Date()){const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const dayNum=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));const weekNo=Math.ceil((((d-yearStart)/86400000)+1)/7);return {year:d.getUTCFullYear(),week:weekNo}}
-const epley1RM=(w,r)=> (w&&r? w*(1+r/30) : null);
-
-// ---------- Profile & Macros ----------
-const defaultProfile={sex:'M',age:31,heightCm:184,weightKg:79.2,sessionsPerWeek:4,activityFactor:1.6,goal:'recomp',deficitPct:0.10};
-const BMR=p=>(10*p.weightKg+6.25*p.heightCm-5*p.age+(p.sex==='F'?-161:5));
-function macrosFrom(p){const b=BMR(p),tdee=b*p.activityFactor;let target=tdee;if(p.goal==='recomp')target=tdee*(1-(p.deficitPct??0.10));if(p.goal==='cut')target=tdee*0.85;if(p.goal==='bulk')target=tdee*1.08;const proteinG=Math.round(2.2*p.weightKg);const fatG=Math.round((0.25*target)/9);const carbsG=Math.max(0,Math.round((target-proteinG*4-fatG*9)/4));return {bmr:round(b),tdee:round(tdee),target:round(target),proteinG,fatG,carbsG}}
-
-// ---------- Exercises & Plan ----------
-const muscles=["Pecs","Delts_Ant","Delts_Lat","Dos","Biceps","Triceps","Quads","Ischios","Fessiers","Mollets","Abdos"];
-const EXER={
- "Bench Press":{m:{Pecs:.7,Delts_Ant:.2,Triceps:.1}, rr:[6,8]},
- "Incline DB Press":{m:{Pecs:.6,Delts_Ant:.3,Triceps:.1}, rr:[8,10]},
- "Dips":{m:{Pecs:.5,Triceps:.4,Delts_Ant:.1}, rr:[8,12]},
- "Overhead DB Press":{m:{Delts_Ant:.6,Delts_Lat:.2,Triceps:.2}, rr:[8,12]},
- "Lateral Raises":{m:{Delts_Lat:1}, rr:[12,15]},
- "Face Pulls":{m:{Delts_Lat:.5,Dos:.5}, rr:[12,15]},
- "Pull Ups":{m:{Dos:.7,Biceps:.3}, rr:[6,8]},
- "Barbell Row":{m:{Dos:.8,Biceps:.2}, rr:[8,10]},
- "Seated Cable Row":{m:{Dos:.8,Biceps:.2}, rr:[10,12]},
- "Lat Pulldown":{m:{Dos:.8,Biceps:.2}, rr:[8,12]},
- "Curl Bar":{m:{Biceps:1}, rr:[10,12]},
- "Incline DB Curl":{m:{Biceps:1}, rr:[12,12]},
- "Back Squat":{m:{Quads:.7,Fessiers:.2,Ischios:.1}, rr:[6,8]},
- "Walking Lunge":{m:{Quads:.5,Fessiers:.4,Ischios:.1}, rr:[10,10]},
- "Leg Press":{m:{Quads:.7,Fessiers:.2,Ischios:.1}, rr:[10,12]},
- "Leg Extension":{m:{Quads:1}, rr:[12,15]},
- "Romanian Deadlift":{m:{Ischios:.6,Fessiers:.3,Dos:.1}, rr:[6,8]},
- "Hip Thrust":{m:{Fessiers:.7,Ischios:.2}, rr:[8,10]},
- "Leg Curl":{m:{Ischios:1}, rr:[12,15]},
- "Bulgarian Split Squat":{m:{Fessiers:.5,Quads:.4,Ischios:.1}, rr:[10,12]},
- "Calf Raise":{m:{Mollets:1}, rr:[12,20]},
- "Plank":{m:{Abdos:1}, rr:[45,60]},
- "Hanging Leg Raises":{m:{Abdos:1}, rr:[10,15]},
+<script>
+// Try to load React, ReactDOM, Babel, ZXing with fallbacks
+const cdns = {
+  react: [
+    "https://unpkg.com/react@18/umd/react.production.min.js",
+    "https://cdn.jsdelivr.net/npm/react@18/umd/react.production.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"
+  ],
+  reactdom: [
+    "https://unpkg.com/react-dom@18/umd/react-dom.production.min.js",
+    "https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.production.min.js",
+    "https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"
+  ],
+  babel: [
+    "https://unpkg.com/@babel/standalone/babel.min.js",
+    "https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"
+  ],
+  zxing: [
+    "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3",
+    "https://unpkg.com/@zxing/library@latest"
+  ]
 };
-const PLAN4=[
- {name:"Upper — Push",ex:[["Bench Press",4],["Incline DB Press",3],["Dips",3],["Overhead DB Press",3],["Lateral Raises",3],["Plank",3]]},
- {name:"Lower — Quads",ex:[["Back Squat",4],["Walking Lunge",3],["Leg Press",3],["Leg Extension",3],["Calf Raise",3],["Hanging Leg Raises",3]]},
- {name:"Upper — Pull",ex:[["Pull Ups",4],["Barbell Row",3],["Seated Cable Row",3],["Lat Pulldown",3],["Curl Bar",3],["Face Pulls",3],["Plank",3]]},
- {name:"Lower — Posterior Chain",ex:[["Romanian Deadlift",4],["Hip Thrust",3],["Leg Curl",3],["Bulgarian Split Squat",3],["Calf Raise",3],["Hanging Leg Raises",3]]},
-];
-const defaultTargets={"Pecs":[12,20],"Delts_Ant":[10,16],"Delts_Lat":[10,20],"Dos":[12,20],"Biceps":[8,16],"Triceps":[8,16],"Quads":[12,20],"Ischios":[10,18],"Fessiers":[10,18],"Mollets":[8,20],"Abdos":[8,20]};
 
-function volumeFrom(plan){const v={};muscles.forEach(m=>v[m]=0); plan.forEach(d=>d.ex.forEach(([name,sets])=>{const def=EXER[name]; if(!def) return; Object.entries(def.m).forEach(([m,w])=>v[m]+=sets*w)})); Object.keys(v).forEach(k=>v[k]=round(v[k],1)); return v}
-function suggestion(entries,[mn,mx]){ if(!entries||entries.length===0) return {msg:"Commence à mi-plage.",delta:0}; const last=entries[entries.length-1]; if(!last?.reps) return {msg:"Entre tes reps pour suggérer la charge.",delta:0}; if(last.reps>=mx) return {msg:"+2,5 à 5% semaine pro.",delta:+0.03}; if(last.reps<mn) return {msg:"Sous la plage : -5% ou vise la borne basse.",delta:-0.05}; return {msg:"Garde la charge, ajoute +1 rep.",delta:0}}
+showDiag("Chargement des librairies…");
+loadScriptSequence(cdns.react, (e1,u1)=>{
+  if(e1){ showDiag("ERREUR: React bloqué. Essayez une autre connexion/réseau."); return; }
+  loadScriptSequence(cdns.reactdom, (e2,u2)=>{
+    if(e2){ showDiag("ERREUR: ReactDOM bloqué."); return; }
+    loadScriptSequence(cdns.babel, (e3,u3)=>{
+      if(e3){ showDiag("ERREUR: Babel bloqué."); return; }
+      loadScriptSequence(cdns.zxing, (e4,u4)=>{
+        if(e4){ showDiag("Avertissement: ZXing indisponible (scan code-barres). Le reste fonctionne."); }
+        showDiag("Librairies OK. Initialisation de l'app…");
+        // Inject the app after Babel is present
+        const script = document.createElement('script');
+        script.type = "text/babel";
+        script.text = `
+          // --- App code (short title to confirm render even si bugs) ---
+          const {useState,useEffect,useMemo,useRef} = React;
+          const Info = () => <div style={{padding:'16px',background:'#0b1325',border:'1px solid #12203a',borderRadius:'12px',margin:'12px'}}>🦇 App initialisée. Si vous voyez cet encadré, le rendu React fonctionne. Le reste se charge…</div>;
+        `;
+        document.body.appendChild(script);
 
-// ---------- Calories & Steps ----------
-function stepLengthCm(h){return round(0.415*(h||175),0)}; function paceToMET(k){if(k<=3)return 2.3;if(k<=4)return 2.9;if(k<=5)return 3.5;if(k<=6)return 4.3;if(k<=7)return 5;return 7}
-function kcalPerStepEstimate(profile,paceKmh){const met=paceToMET(paceKmh||4.5);const kg=profile.weightKg||80;const stepLen=stepLengthCm(profile.heightCm||180)/100;const stepsPerMin=(paceKmh||4.5)*1000/60/stepLen;const kcalPerMin=met*3.5*kg/200;return kcalPerMin/stepsPerMin}
-
-// ---------- OFF & Photo helpers ----------
-async function scanBarcode(videoEl,onResult,onError){try{const cr=new ZXing.BrowserMultiFormatReader();const devices=await cr.listVideoInputDevices();const deviceId=devices[0]?.deviceId;await cr.decodeOnceFromVideoDevice(deviceId,videoEl,(res,err)=>{ if(res){onResult(res.text);cr.reset()} if(err && !(err instanceof ZXing.NotFoundException)){onError?.(String(err))}})}catch(e){onError?.(String(e))}}
-async function fetchOFF(barcode){const url=`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`;try{const r=await fetch(url);const j=await r.json();if(j&&j.product){const p=j.product;return {name:p.product_name||'Produit OFF',kcalPer100:+p.nutriments['energy-kcal_100g']||null,proteinPer100:+p.nutriments['proteins_100g']||0,carbsPer100:+p.nutriments['carbohydrates_100g']||0,fatPer100:+p.nutriments['fat_100g']||0}}}catch(e){}return null}
-
-// ---------- Tiny Line Chart (SVG) ----------
-function LineChart({data,yKey="y"}){
-  const w=800,h=200,pad=24; const xs=data.map((_,i)=>i); const ys=data.map(d=>d[yKey]||0);
-  const minY=Math.min(...ys,0),maxY=Math.max(...ys,1);
-  const sx=i=> pad + (i*(w-2*pad))/Math.max(1,(xs.length-1||1));
-  const sy=y=> h-pad - ((y-minY)*(h-2*pad))/Math.max(1,(maxY-minY||1));
-  const pts=data.map((d,i)=> `${sx(i)},${sy(d[yKey])}`).join(" ");
-  return <div className="chart"><svg viewBox={`0 0 ${w} ${h}`}>
-    <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#73e0ff88"/><stop offset="100%" stop-color="#73e0ff08"/></linearGradient></defs>
-    <rect x="0" y="0" width={w} height={h} fill="#0c162a"/>
-    {[0.25,0.5,0.75].map((t,i)=>(<line key={i} x1={pad} x2={w-pad} y1={pad+t*(h-2*pad)} y2={pad+t*(h-2*pad)} stroke="#193052"/>))}
-    {data.length>1 && <polyline points={pts} fill="none" stroke="#73e0ff" stroke-width="2"/>}
-    {data.length>1 && <polygon points={`${pts} ${w-pad},${h-pad} ${pad},${h-pad}`} fill="url(#g)"/>}
-  </svg></div>;
-}
-
-// ---------- App ----------
-function Tabs({active,onSet}){
-  const items=[
-    ["profile","Profil"],
-    ["plan","Programme"],
-    ["log","Séances"],
-    ["analytics","Analyse"],
-    ["targets","Cibles"],
-    ["cal","Calories"],
-    ["sync","Sync"],
-    ["coach","Coaching"],
-    ["export","Export"],
-  ];
-  return <div className="tabs">{items.map(([k,lab])=>(<button key={k} className={"tab"+(active===k?" active":"")} onClick={()=>onSet(k)}>{lab}</button>))}</div>
-}
-
-function App(){
-  // Core states
-  const [profile,setProfile]=useLocal("mp_fusion_profile", defaultProfile);
-  const [plan,setPlan]=useLocal("mp_fusion_plan", PLAN4);
-  const [logs,setLogs]=useLocal("mp_fusion_logs", {});
-  const [targets,setTargets]=useLocal("mp_fusion_targets", defaultTargets);
-  const [weekOff,setWeekOff]=useLocal("mp_fusion_weekOff", 0);
-  const [tab,setTab]=useLocal("mp_fusion_tab", "cal");
-
-  // Nutrition states
-  const [cfg,setCfg]=useLocal("mp_fusion_cfg", { paceKmh:4.8, kcalPerStep:null });
-  const [days,setDays]=useLocal("mp_fusion_days", {});
-  const [coach,setCoach]=useLocal("mp_fusion_coach", { enabled:true, lowThresh:-200, highThresh:150 });
-  const [sync,setSync]=useLocal("mp_fusion_sync", { mode:"none", supabaseUrl:"", supabaseAnon:"", table:"musclepilot_logs", sheetsWebhook:"" });
-
-  // Derived
-  const base=macrosFrom(profile);
-  const iso=getISOWeek(); const currentWeek=`${iso.year}-W${iso.week+weekOff}`;
-  const volume=useMemo(()=>volumeFrom(plan),[plan]);
-
-  // Calories derived
-  const today=dayKey(); const day=days[today]||{foods:[],steps:0};
-  const kcalStep = cfg.kcalPerStep ?? kcalPerStepEstimate(profile,cfg.paceKmh);
-  const stepsKcal = Math.round((day.steps||0)*kcalStep);
-  const dynTarget = Math.round(base.target + stepsKcal);
-  const totals = day.foods.reduce((a,f)=>({kcal:a.kcal+(+f.kcal||0),p:a.p+(+f.protein||0),c:a.c+(+f.carbs||0),f:a.f+(+f.fat||0)}),{kcal:0,p:0,c:0,f:0});
-  const remaining = Math.round(dynTarget - totals.kcal);
-
-  // Logs helpers
-  function addLog(dayIdx, name, setIndex, weight, reps){
-    setLogs(prev=>{
-      const w=prev[currentWeek]||{}; const d=w[dayIdx]||{}; const arr=d[name]||[];
-      return {...prev,[currentWeek]:{...w,[dayIdx]:{...d,[name]:[...arr,{set:setIndex,weight,reps}]}}}
-    })
-  }
-  function entriesForWeek(weekKey,name){
-    const w=logs[weekKey]||{}; const days=Object.values(w); const arr=[]; days.forEach(d=>{(d[name]||[]).forEach(s=>arr.push({...s}))}); return arr;
-  }
-  const [selEx,setSelEx]=useState("Bench Press");
-  const e1Data=useMemo(()=>{
-    const keys=Object.keys(logs).sort(); const arr=[];
-    keys.forEach(k=>{ let best=0; const w=logs[k]||{}; Object.values(w).forEach(d=>{ (d[selEx]||[]).forEach(s=>{ const est=epley1RM(s.weight,s.reps)||0; if(est>best) best=est; })}); if(best>0) arr.push({y:round(best,1)}) })
-    return arr;
-  },[logs,selEx]);
-
-  // Coaching notif
-  useEffect(()=>{ if(!coach.enabled) return; try{ if("Notification" in window){ if(Notification.permission==="default"){ Notification.requestPermission() } }
-    if(remaining<=coach.lowThresh){ if(navigator.vibrate) navigator.vibrate([12,30,12]); }
-    if(remaining>=coach.highThresh){ if(navigator.vibrate) navigator.vibrate([12,12,12]); }
-  }catch{}
-  },[remaining,coach.enabled]);
-
-  // UI helpers
-  function saveDay(u){ setDays(prev=>({...prev,[today]:{...(prev[today]||{}),...u}})) }
-  function updateSets(dayIdx, exIdx, newSets){ setPlan(prev=>prev.map((d,i)=> i!==dayIdx? d: ({...d, ex:d.ex.map((e,j)=> j!==exIdx? e: [e[0], Math.max(1,newSets)])})) ) }
-
-  return (<div className="wrap">
-    <div className="header"><div className="title">MusclePilot — Dark Knight FUSION</div><div className="badge">🦇 Gotham Tech · {today}</div></div>
-    <Tabs active={tab} onSet={setTab} />
-
-    {tab==="profile" && (<div className="card">
-      <b>Profil & Macros</b>
-      <div className="grid cols-4" style={{marginTop:8}}>
-        <div><label>Taille (cm)</label><input type="number" value={profile.heightCm} onChange={e=>setProfile({...profile,heightCm:+e.target.value})}/></div>
-        <div><label>Poids (kg)</label><input type="number" step="0.1" value={profile.weightKg} onChange={e=>setProfile({...profile,weightKg:+e.target.value})}/></div>
-        <div><label>Âge</label><input type="number" value={profile.age} onChange={e=>setProfile({...profile,age:+e.target.value})}/></div>
-        <div><label>Sexe</label><select value={profile.sex} onChange={e=>setProfile({...profile,sex:e.target.value})}><option value="M">Homme</option><option value="F">Femme</option></select></div>
-        <div><label>Objectif</label><select value={profile.goal} onChange={e=>setProfile({...profile,goal:e.target.value})}><option value="recomp">Recomposition</option><option value="cut">Sèche</option><option value="bulk">Prise de masse</option></select></div>
-        <div><label>Déficit (%)</label><input type="number" value={Math.round((profile.deficitPct||0.10)*100)} onChange={e=>setProfile({...profile,deficitPct:(+e.target.value||0)/100})}/></div>
-        <div><label>Activité (facteur)</label><select value={String(profile.activityFactor)} onChange={e=>setProfile({...profile,activityFactor:+e.target.value})}>{[1.2,1.375,1.55,1.6,1.725,1.9].map(v=>(<option key={v} value={v}>{v}</option>))}</select></div>
-        <div className="kpi"><span className="pill">Cible kcal</span><b>{base.target}</b></div>
-        <div className="kpi"><span className="pill">Prot (g)</span><b>{base.proteinG}</b></div>
-        <div className="kpi"><span className="pill">Lip (g)</span><b>{base.fatG}</b></div>
-        <div className="kpi"><span className="pill">Gluc (g)</span><b>{base.carbsG}</b></div>
-      </div>
-    </div>)}
-
-    {tab==="plan" && (<div className="card">
-      <b>Programme — {profile.sessionsPerWeek} séances/sem.</b>
-      <div className="hint">Plan 4 jours pré-rempli (ajuste les séries).</div>
-      <div className="hr"></div>
-      <div className="grid cols-2">
-        {plan.map((d,dayIdx)=>(
-          <div key={dayIdx} className="card" style={{background:"#0b152b"}}>
-            <div className="row" style={{justifyContent:"space-between"}}>
-              <b>Jour {dayIdx+1} — {d.name}</b><span className="pill">Batman Split</span>
-            </div>
-            <div>
-              {d.ex.map(([name,sets],exIdx)=>(
-                <div key={exIdx} className="tile" style="margin:6px 0">
-                  <div>
-                    <div><b>{name}</b></div>
-                    <div className="small">{(EXER[name]?.rr||[8,12]).join("–")} reps</div>
-                  </div>
-                  <div className="row">
-                    <label>Sets</label>
-                    <input style="width:90px" type="number" min="1" value={sets} onChange={e=>updateSets(dayIdx,exIdx, +e.target.value)}/>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="hr"></div>
-      <b>Volume hebdomadaire (sets effectifs)</b>
-      <div className="grid cols-4" style={{marginTop:8}}>
-        {muscles.map(m=>{
-          const val=volume[m]||0; const [lo,hi]=targets[m]||[0,0];
-          const cls = val<lo? "bad": (val>hi? "warn":"good");
-          return (<div key={m} className="tile"><span>{m}</span><b className={cls}>{val}</b></div>)
-        })}
-      </div>
-    </div>)}
-
-    {tab==="log" && (<div className="card">
-      <b>Journal — semaine {currentWeek}</b>
-      <div className="row" style="margin-top:6px">
-        <button className="btn" onClick={()=>setWeekOff(weekOff-1)}>-1 semaine</button>
-        <button className="btn" onClick={()=>setWeekOff(0)}>Cette semaine</button>
-        <button className="btn" onClick={()=>setWeekOff(weekOff+1)}>+1 semaine</button>
-      </div>
-      <div className="hr"></div>
-      {plan.map((d,dayIdx)=>(
-        <div key={dayIdx} className="card" style="background:#0b152b">
-          <b>{d.name}</b>
-          {d.ex.map(([name,sets],exIdx)=>{
-            const rr=EXER[name]?.rr||[8,12]; const entries=entriesForWeek(currentWeek,name); const sugg=suggestion(entries,rr);
-            return (<div key={exIdx} className="card" style="background:#0a1326">
-              <div className="row" style="justify-content:space-between">
-                <div><b>{name}</b><div className="small">Cible {sets}×{rr[0]}–{rr[1]} reps</div></div>
-                <div className="small">{sugg.msg}</div>
-              </div>
-              <div className="grid cols-4" style="margin-top:8px">
-                {Array.from({length:sets}).map((_,sIdx)=> <SetLogger key={sIdx} onAdd={(w,r)=>addLog(dayIdx,name,sIdx+1,w,r)} />)}
-              </div>
-            </div>)
-          })}
-        </div>
-      ))}
-    </div>)}
-
-    {tab==="analytics" && (<div className="card">
-      <b>Analyse — e1RM</b>
-      <div className="row" style="margin-top:8px">
-        <label>Exercice</label>
-        <select value={selEx} onChange={e=>setSelEx(e.target.value)}>
-          {Object.keys(EXER).map(k=>(<option key={k} value={k}>{k}</option>))}
-        </select>
-      </div>
-      <div style="margin-top:8px"><LineChart data={e1Data}/></div>
-      <div className="legend"><span className="pill">estimation Epley</span></div>
-    </div>)}
-
-    {tab==="targets" && (<div className="card">
-      <b>Cibles de volume (sets/semaine)</b>
-      <div className="grid cols-3" style="margin-top:8px">
-        {muscles.map(m=>{
-          const [lo,hi]=targets[m]||[0,0];
-          return (<div key={m} className="tile">
-            <div style="min-width:120px">{m}</div>
-            <div className="row"><input type="number" style="width:80px" value={lo} onChange={e=>setTargets({...targets,[m]:[+e.target.value,Math.max(+e.target.value,hi)]})}/>
-              <input type="number" style="width:80px" value={hi} onChange={e=>setTargets({...targets,[m]:[lo,Math.max(+e.target.value,lo)]})}/></div>
-          </div>)
-        })}
-      </div>
-      <div className="row" style="margin-top:8px">
-        <button className="btn" onClick={()=>setTargets(defaultTargets)}>Réinitialiser</button>
-        <span className="hint">Les couleurs du tableau Programme se mettent à jour automatiquement.</span>
-      </div>
-    </div>)}
-
-    {tab==="cal" && (<div className="card">
-      <b>Calories & Pas</b>
-      <div className="grid cols-3" style="margin-top:8px">
-        <div className="kpi"><span className="pill">Cible repos</span><b>{base.target} kcal</b></div>
-        <div className="kpi"><span className="pill">kcal / pas (estim.)</span><b>{round(kcalStep,3)}</b></div>
-        <div className="kpi"><span className="pill">kcal des pas</span><b>{stepsKcal} kcal</b></div>
-      </div>
-      <div className="grid cols-3" style="margin-top:8px">
-        <div><label>Pas du jour</label><input type="number" value={day.steps||0} onChange={e=>saveDay({steps:+e.target.value})}/></div>
-        <div><label>Allure (km/h)</label><input type="number" step="0.1" value={cfg.paceKmh} onChange={e=>setCfg({...cfg,paceKmh:+e.target.value})}/><div className="hint">Impacte l’estimation kcal/pas.</div></div>
-        <div className="kpi"><span className="pill">Cible ajustée</span><b>{dynTarget} kcal</b></div>
-      </div>
-
-      <div className="card" style="margin-top:12px">
-        <b>Ajouter un aliment</b>
-        <FoodForm onAdd={(f)=>saveDay({foods:[...(day.foods||[]), {...f, id:Date.now()}]})} />
-        <div className="grid cols-2" style="margin-top:12px">
-          <BarcodeBlock onAdd={(f)=>saveDay({foods:[...(day.foods||[]), {...f, id:Date.now()}]})}/>
-          <PhotoBlock onAdd={(f)=>saveDay({foods:[...(day.foods||[]), {...f, id:Date.now()}]})}/>
-        </div>
-      </div>
-
-      <div className="card">
-        <b>Aliments du jour</b>
-        {(day.foods||[]).length===0 && <div className="hint">Aucun aliment ajouté.</div>}
-        {(day.foods||[]).map(f=>(
-          <div key={f.id} className="tile" style="margin:6px 0">
-            <div>
-              <div><b>{f.name||"Aliment"}</b> {f.grams? <span className="small">({f.grams} g)</span>: null}</div>
-              <div className="small">{Math.round(f.kcal)} kcal · P {f.protein} g · G {f.carbs} g · L {f.fat} g {f.barcode? `· code ${f.barcode}`: ""}</div>
-            </div>
-            <button className="btn danger" onClick={()=>saveDay({foods:(day.foods||[]).filter(x=>x.id!==f.id)})}>Supprimer</button>
-          </div>
-        ))}
-      </div>
-
-      <div className="grid cols-3" style="margin-top:8px">
-        <div className="kpi"><span className="pill">Total kcal</span><b>{Math.round((day.foods||[]).reduce((s,f)=>s+(+f.kcal||0),0))}</b></div>
-        <div className="kpi"><span className="pill">Reste</span><b className={remaining<0?'bad':'good'}>{remaining}</b></div>
-        <div className="kpi"><span className="pill">BMR / TDEE</span><b>{base.bmr} / {base.tdee}</b></div>
-      </div>
-    </div>)}
-
-    {tab==="sync" && (<div className="card">
-      <b>Synchronisation</b>
-      <div className="row" style="margin-top:8px">
-        <label>Mode</label>
-        <select value={sync.mode} onChange={e=>setSync({...sync,mode:e.target.value})}>
-          <option value="none">Désactivé</option>
-          <option value="supabase">Supabase</option>
-          <option value="sheets">Google Sheets (webhook)</option>
-        </select>
-        <button className="btn primary" onClick={()=>doPush({profile,plan,logs,targets,weekOff,cfg,days,coach})}>Pousser</button>
-        <button className="btn" onClick={()=>doPull()}>Récupérer</button>
-      </div>
-      {sync.mode==="supabase" && (<div className="grid cols-2" style="margin-top:8px">
-        <div><label>Supabase URL</label><input value={sync.supabaseUrl} onChange={e=>setSync({...sync,supabaseUrl:e.target.value})} placeholder="https://YOUR-PROJECT.supabase.co"/></div>
-        <div><label>Anon Key</label><input value={sync.supabaseAnon} onChange={e=>setSync({...sync,supabaseAnon:e.target.value})} placeholder="ey..."/></div>
-        <div><label>Table</label><input value={sync.table} onChange={e=>setSync({...sync,table:e.target.value})} placeholder="musclepilot_logs"/></div>
-        <div className="hint">Schéma: id text (PK), data jsonb. Une seule ligne id='singleton'.</div>
-      </div>)}
-      {sync.mode==="sheets" && (<div className="grid cols-2" style="margin-top:8px">
-        <div><label>Webhook (Apps Script)</label><input value={sync.sheetsWebhook} onChange={e=>setSync({...sync,sheetsWebhook:e.target.value})} placeholder="https://script.google.com/macros/s/XXXX/exec"/></div>
-        <div className="hint">Le script reçoit un JSON et l’écrit dans une feuille Google.</div>
-      </div>)}
-    </div>)}
-
-    {tab==="coach" && (<div className="card">
-      <b>Mode coaching</b>
-      <div className="row" style="margin-top:8px">
-        <label>Activer</label>
-        <select value={String(coach.enabled)} onChange={e=>setCoach({...coach,enabled:e.target.value==='true'})}>
-          <option value="true">Oui</option><option value="false">Non</option>
-        </select>
-      </div>
-      <div className="grid cols-2" style="margin-top:8px">
-        <div><label>Alerte “sous la cible” quand Reste ≤</label><input type="number" value={coach.lowThresh} onChange={e=>setCoach({...coach,lowThresh:+e.target.value})}/></div>
-        <div><label>Alerte “au-dessus” quand Reste ≥</label><input type="number" value={coach.highThresh} onChange={e=>setCoach({...coach,highThresh:+e.target.value})}/></div>
-      </div>
-      <div className="hint">Notifications locales + vibration (si autorisées).</div>
-    </div>)}
-
-    {tab==="export" && (<div className="card">
-      <b>Export & Import</b>
-      <div className="row" style="margin-top:8px">
-        <button className="btn" onClick={()=>{
-          const rows=[["Week","Day","Exercise","Set","Weight","Reps"]];
-          Object.entries(logs).forEach(([week,days])=>{
-            Object.entries(days).forEach(([dIdx,exs])=>{
-              Object.entries(exs).forEach(([name,sets])=>{
-                sets.forEach(s=>rows.push([week,Number(dIdx)+1,name,s.set,s.weight,s.reps]))
-              })
-            })
-          });
-          const csv=rows.map(r=>r.join(",")).join("\n");
-          const blob=new Blob([csv],{type:"text/csv"});
-          const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download='musclepilot_logs.csv'; a.click(); URL.revokeObjectURL(url);
-        }}>Export CSV (séances)</button>
-        <button className="btn" onClick={()=>{
-          const data={profile,plan,logs,targets,weekOff,cfg,days,coach};
-          const blob=new Blob([JSON.stringify(data)],{type:"application/json"});
-          const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download='musclepilot_backup.json'; a.click(); URL.revokeObjectURL(url);
-        }}>Export JSON (tout)</button>
-      </div>
-
-      <div className="card" style="margin-top:12px">
-        <b>Importer JSON</b>
-        <textarea id="importArea" rows="6" placeholder='Colle ici un JSON exporté'></textarea>
-        <div className="row" style="margin-top:8px">
-          <button className="btn" onClick={()=>{
-            try{
-              const txt=document.getElementById('importArea').value; const data=JSON.parse(txt);
-              if(confirm("Fusionner (OK) ou Remplacer (Annuler) ?")){
-                localStorage.setItem('mp_fusion_profile',JSON.stringify(data.profile||defaultProfile));
-                localStorage.setItem('mp_fusion_plan',JSON.stringify(data.plan||PLAN4));
-                localStorage.setItem('mp_fusion_logs',JSON.stringify({...JSON.parse(localStorage.getItem('mp_fusion_logs')||'{}'), ...(data.logs||{})}));
-                localStorage.setItem('mp_fusion_targets',JSON.stringify(data.targets||defaultTargets));
-                localStorage.setItem('mp_fusion_weekOff',JSON.stringify(data.weekOff||0));
-                localStorage.setItem('mp_fusion_cfg',JSON.stringify(data.cfg||{}));
-                localStorage.setItem('mp_fusion_days',JSON.stringify({...JSON.parse(localStorage.getItem('mp_fusion_days')||'{}'), ...(data.days||{})}));
-                localStorage.setItem('mp_fusion_coach',JSON.stringify(data.coach||{}));
-              } else {
-                localStorage.setItem('mp_fusion_profile',JSON.stringify(data.profile||defaultProfile));
-                localStorage.setItem('mp_fusion_plan',JSON.stringify(data.plan||PLAN4));
-                localStorage.setItem('mp_fusion_logs',JSON.stringify(data.logs||{}));
-                localStorage.setItem('mp_fusion_targets',JSON.stringify(data.targets||defaultTargets));
-                localStorage.setItem('mp_fusion_weekOff',JSON.stringify(data.weekOff||0));
-                localStorage.setItem('mp_fusion_cfg',JSON.stringify(data.cfg||{}));
-                localStorage.setItem('mp_fusion_days',JSON.stringify(data.days||{}));
-                localStorage.setItem('mp_fusion_coach',JSON.stringify(data.coach||{}));
-              }
-              alert("Import effectué. Recharge la page.");
-            }catch(e){ alert("JSON invalide: "+e.message) }
-          }}>Importer</button>
-        </div>
-      </div>
-    </div>)}
-  </div>);
-}
-
-// -------- Components: Set Logger & Nutrition Blocks --------
-function SetLogger({onAdd}){
-  const [w,setW]=useState(""),[r,setR]=useState("");
-  return (<div className="setbox">
-    <label>Poids (kg)</label><input type="number" inputMode="decimal" value={w} onChange={e=>setW(e.target.value)}/>
-    <label>Reps</label><input type="number" inputMode="numeric" value={r} onChange={e=>setR(e.target.value)}/>
-    <div className="row" style="margin-top:6px"><button className="btn primary" onClick={()=>onAdd(+w||0,+r||0)}>Ajouter</button></div>
-  </div>)
-}
-
-function FoodForm({onAdd}){
-  const [name,setName]=useState(""),[kcal,setK]=useState(""),[p,setP]=useState(""),[c,setC]=useState(""),[f,setF]=useState(""),[g,setG]=useState("");
-  return (<div className="grid cols-3">
-    <div><label>Nom</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Aliment" /></div>
-    <div><label>kcal</label><input type="number" value={kcal} onChange={e=>setK(+e.target.value)} /></div>
-    <div><label>Prot (g)</label><input type="number" value={p} onChange={e=>setP(+e.target.value)} /></div>
-    <div><label>Gluc (g)</label><input type="number" value={c} onChange={e=>setC(+e.target.value)} /></div>
-    <div><label>Lip (g)</label><input type="number" value={f} onChange={e=>setF(+e.target.value)} /></div>
-    <div><label>Grammage (g)</label><input type="number" value={g} onChange={e=>setG(+e.target.value)} /></div>
-    <div className="row" style="align-items:end">
-      <button className="btn primary" onClick={()=>{ onAdd({name,kcal:+kcal||0,protein:+p||0,carbs:+c||0,fat:+f||0,grams:+g||null}); setName('');setK('');setP('');setC('');setF('');setG(''); }}>Ajouter</button>
-    </div>
-  </div>)
-}
-
-function BarcodeBlock({onAdd}){
-  const [barcode,setBarcode]=useState(""),[status,setStatus]=useState("Prêt"); const videoRef=useRef(null),[grams,setGrams]=useState(100);
-  async function doScan(){ setStatus("Scan en cours…"); scanBarcode(videoRef.current,(code)=>{setBarcode(code);setStatus("Code détecté : "+code)},(err)=>setStatus("Erreur: "+err)) }
-  async function lookup(){ try{ setStatus("Recherche OFF…"); const info=await fetchOFF(barcode); if(!info){ setStatus("Produit non trouvé"); return; } setStatus("Trouvé : "+(info.name||""));
-    const factor=(+grams||100)/100; onAdd({ name:info.name||"Produit OFF", kcal:(info.kcalPer100||0)*factor, protein:(info.proteinPer100||0)*factor, carbs:(info.carbsPer100||0)*factor, fat:(info.fatPer100||0)*factor, grams:+grams||100, barcode }); }catch(e){ setStatus("Erreur OFF"); } }
-  return (<div className="card"><b>Scan code-barres</b>
-    <div className="row" style="margin-top:6px">
-      <button className="btn" onClick={doScan}>Activer la caméra</button>
-      <input placeholder="Code-barres" value={barcode} onChange={e=>setBarcode(e.target.value)} />
-      <input type="number" value={grams} onChange={e=>setGrams(+e.target.value)} /><span className="small">g</span>
-      <button className="btn primary" onClick={lookup}>Ajouter depuis OFF</button>
-    </div>
-    <video ref={videoRef} style="width:100%;border:1px solid var(--border);border-radius:8px;margin-top:8px" muted playsInline></video>
-    <div className="hint">{status}</div>
-  </div>)
-}
-
-function PhotoBlock({onAdd}){
-  const [photo,setPhoto]=useState(null),[preset,setPreset]=useState("none"),[grams,setGrams]=useState(300),[kcal,setK]=useState(0),[p,setP]=useState(0),[c,setC]=useState(0),[f,setF]=useState(0);
-  useEffect(()=>{ const per100={"none":{k:0,p:0,c:0,f:0},"chicken_rice":{k:165,p:31,c:0,f:3.6},"pasta_bolo":{k:150,p:7,c:22,f:4},"salmon_potatoes":{k:200,p:18,c:10,f:10},"salad_olive":{k:120,p:3,c:10,f:8}}[preset];
-    const factor=(+grams||100)/100; setK(Math.round(per100.k*factor)); setP(Number((per100.p*factor).toFixed(1))); setC(Number((per100.c*factor).toFixed(1))); setF(Number((per100.f*factor).toFixed(1)));
-  },[preset,grams]);
-  function onFile(e){ const file=e.target.files?.[0]; if(!file) return; const rdr=new FileReader(); rdr.onload=()=>setPhoto(rdr.result); rdr.readAsDataURL(file); }
-  return (<div className="card"><b>Photo du plat (estimation)</b>
-    <div className="grid cols-3" style="margin-top:6px">
-      <div><label>Photo</label><input type="file" accept="image/*" onChange={onFile} /></div>
-      <div><label>Preset</label><select value={preset} onChange={e=>setPreset(e.target.value)}>
-        <option value="none">—</option><option value="chicken_rice">Poulet & riz (100g)</option><option value="pasta_bolo">Pâtes bolo (100g)</option>
-        <option value="salmon_potatoes">Saumon & pommes (100g)</option><option value="salad_olive">Salade + huile (100g)</option>
-      </select></div>
-      <div><label>Grammage (g)</label><input type="number" value={grams} onChange={e=>setGrams(+e.target.value)} /></div>
-      <div><label>kcal</label><input type="number" value={kcal} onChange={e=>setK(+e.target.value)} /></div>
-      <div><label>Prot (g)</label><input type="number" value={p} onChange={e=>setP(+e.target.value)} /></div>
-      <div><label>Gluc (g)</label><input type="number" value={c} onChange={e=>setC(+e.target.value)} /></div>
-      <div><label>Lip (g)</label><input type="number" value={f} onChange={e=>setF(+e.target.value)} /></div>
-    </div>
-    <div className="row" style="margin-top:8px">
-      <button className="btn primary" onClick={()=>onAdd({name:"Plat (photo)",grams,kcal,protein:p,carbs:c,fat:f,photoDataUrl:photo})}>Ajouter le plat</button>
-      {photo? <a className="btn" href={photo} target="_blank" rel="noreferrer">Voir photo</a>: null}
-    </div>
-  </div>)
-}
-
-async function doPush(payload){
-  const sync=JSON.parse(localStorage.getItem('mp_fusion_sync')||'{}');
-  if(sync.mode!=="supabase" and sync.mode!=="sheets"){ alert("Choisis un mode de synchro."); return; }
-  try{
-    if(sync.mode==="supabase"){
-      const res=await fetch(`${sync.supabaseUrl}/rest/v1/${sync.table}`,{
-        method:"POST",headers:{"Content-Type":"application/json","apikey":sync.supabaseAnon,"Authorization":`Bearer ${sync.supabaseAnon}`,"Prefer":"resolution=merge-duplicates"},
-        body: JSON.stringify([{id:"singleton",data:payload}])
-      }); if(!res.ok) throw new Error("HTTP "+res.status); alert("Supabase: synchronisation envoyée.");
-    } else {
-      if(!sync.sheetsWebhook) throw new Error("Webhook manquant");
-      const r=await fetch(sync.sheetsWebhook,{method:"POST",body:JSON.stringify(payload)}); if(!r.ok) throw new Error("HTTP "+r.status); alert("Sheets: synchronisation envoyée.");
-    }
-  }catch(e){ alert("Erreur de synchronisation: "+e.message) }
-}
-async function doPull(){
-  const sync=JSON.parse(localStorage.getItem('mp_fusion_sync')||'{}');
-  if(sync.mode!=="supabase"){ alert("Le Pull nécessite Supabase."); return; }
-  try{
-    const r=await fetch(`${sync.supabaseUrl}/rest/v1/${sync.table}?id=eq.singleton&select=*`,{headers:{"apikey":sync.supabaseAnon,"Authorization":`Bearer ${sync.supabaseAnon}`}});
-    if(!r.ok) throw new Error("HTTP "+r.status);
-    const arr=await r.json(); const data=arr[0]?.data; if(!data) return alert("Aucune donnée distante.");
-    if(confirm("Fusionner (OK) ou Remplacer (Annuler) ?")){
-      for(const [k,v] of Object.entries(data)){ const key='mp_fusion_'+k; const curr=JSON.parse(localStorage.getItem(key)||'null'); if(v && typeof v==='object' && !Array.isArray(v)){ localStorage.setItem(key, JSON.stringify({...curr,...v})) } else { localStorage.setItem(key, JSON.stringify(v)) } }
-    } else {
-      for(const [k,v] of Object.entries(data)){ const key='mp_fusion_'+k; localStorage.setItem(key, JSON.stringify(v)) }
-    }
-    alert("Récupération terminée. Recharge la page.");
-  }catch(e){ alert("Erreur Pull: "+e.message) }
-}
-
-const root=ReactDOM.createRoot(document.getElementById('root')); root.render(<App/>);
+        // Now inject the full app (minified content replaced below)
+        const appScript = document.createElement('script');
+        appScript.type = "text/babel";
+        appScript.text = "\nconst {useState,useEffect,useMemo,useRef} = React;\n// ---------- Utils & State ----------\nconst round=(n,d=0)=>Number(n.toFixed(d));\nfunction useLocal(key,init){const [v,setV]=useState(()=>{try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):init}catch{return init}});useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(v))}catch{}},[key,v]);return [v,setV]}\nfunction dayKey(d=new Date()){return d.toISOString().slice(0,10)}\nfunction getISOWeek(date=new Date()){const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const dayNum=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));const weekNo=Math.ceil((((d-yearStart)/86400000)+1)/7);return {year:d.getUTCFullYear(),week:weekNo}}\nconst epley1RM=(w,r)=> (w&&r? w*(1+r/30) : null);\n\n// ---------- Profile & Macros ----------\nconst defaultProfile={sex:'M',age:31,heightCm:184,weightKg:79.2,sessionsPerWeek:4,activityFactor:1.6,goal:'recomp',deficitPct:0.10};\nconst BMR=p=>(10*p.weightKg+6.25*p.heightCm-5*p.age+(p.sex==='F'?-161:5));\nfunction macrosFrom(p){const b=BMR(p),tdee=b*p.activityFactor;let target=tdee;if(p.goal==='recomp')target=tdee*(1-(p.deficitPct??0.10));if(p.goal==='cut')target=tdee*0.85;if(p.goal==='bulk')target=tdee*1.08;const proteinG=Math.round(2.2*p.weightKg);const fatG=Math.round((0.25*target)/9);const carbsG=Math.max(0,Math.round((target-proteinG*4-fatG*9)/4));return {bmr:round(b),tdee:round(tdee),target:round(target),proteinG,fatG,carbsG}}\n\n// ---------- Exercises & Plan ----------\nconst muscles=[\"Pecs\",\"Delts_Ant\",\"Delts_Lat\",\"Dos\",\"Biceps\",\"Triceps\",\"Quads\",\"Ischios\",\"Fessiers\",\"Mollets\",\"Abdos\"];\nconst EXER={\n \"Bench Press\":{m:{Pecs:.7,Delts_Ant:.2,Triceps:.1}, rr:[6,8]},\n \"Incline DB Press\":{m:{Pecs:.6,Delts_Ant:.3,Triceps:.1}, rr:[8,10]},\n \"Dips\":{m:{Pecs:.5,Triceps:.4,Delts_Ant:.1}, rr:[8,12]},\n \"Overhead DB Press\":{m:{Delts_Ant:.6,Delts_Lat:.2,Triceps:.2}, rr:[8,12]},\n \"Lateral Raises\":{m:{Delts_Lat:1}, rr:[12,15]},\n \"Face Pulls\":{m:{Delts_Lat:.5,Dos:.5}, rr:[12,15]},\n \"Pull Ups\":{m:{Dos:.7,Biceps:.3}, rr:[6,8]},\n \"Barbell Row\":{m:{Dos:.8,Biceps:.2}, rr:[8,10]},\n \"Seated Cable Row\":{m:{Dos:.8,Biceps:.2}, rr:[10,12]},\n \"Lat Pulldown\":{m:{Dos:.8,Biceps:.2}, rr:[8,12]},\n \"Curl Bar\":{m:{Biceps:1}, rr:[10,12]},\n \"Incline DB Curl\":{m:{Biceps:1}, rr:[12,12]},\n \"Back Squat\":{m:{Quads:.7,Fessiers:.2,Ischios:.1}, rr:[6,8]},\n \"Walking Lunge\":{m:{Quads:.5,Fessiers:.4,Ischios:.1}, rr:[10,10]},\n \"Leg Press\":{m:{Quads:.7,Fessiers:.2,Ischios:.1}, rr:[10,12]},\n \"Leg Extension\":{m:{Quads:1}, rr:[12,15]},\n \"Romanian Deadlift\":{m:{Ischios:.6,Fessiers:.3,Dos:.1}, rr:[6,8]},\n \"Hip Thrust\":{m:{Fessiers:.7,Ischios:.2}, rr:[8,10]},\n \"Leg Curl\":{m:{Ischios:1}, rr:[12,15]},\n \"Bulgarian Split Squat\":{m:{Fessiers:.5,Quads:.4,Ischios:.1}, rr:[10,12]},\n \"Calf Raise\":{m:{Mollets:1}, rr:[12,20]},\n \"Plank\":{m:{Abdos:1}, rr:[45,60]},\n \"Hanging Leg Raises\":{m:{Abdos:1}, rr:[10,15]},\n};\nconst PLAN4=[\n {name:\"Upper \u2014 Push\",ex:[[\"Bench Press\",4],[\"Incline DB Press\",3],[\"Dips\",3],[\"Overhead DB Press\",3],[\"Lateral Raises\",3],[\"Plank\",3]]},\n {name:\"Lower \u2014 Quads\",ex:[[\"Back Squat\",4],[\"Walking Lunge\",3],[\"Leg Press\",3],[\"Leg Extension\",3],[\"Calf Raise\",3],[\"Hanging Leg Raises\",3]]},\n {name:\"Upper \u2014 Pull\",ex:[[\"Pull Ups\",4],[\"Barbell Row\",3],[\"Seated Cable Row\",3],[\"Lat Pulldown\",3],[\"Curl Bar\",3],[\"Face Pulls\",3],[\"Plank\",3]]},\n {name:\"Lower \u2014 Posterior Chain\",ex:[[\"Romanian Deadlift\",4],[\"Hip Thrust\",3],[\"Leg Curl\",3],[\"Bulgarian Split Squat\",3],[\"Calf Raise\",3],[\"Hanging Leg Raises\",3]]},\n];\nconst defaultTargets={\"Pecs\":[12,20],\"Delts_Ant\":[10,16],\"Delts_Lat\":[10,20],\"Dos\":[12,20],\"Biceps\":[8,16],\"Triceps\":[8,16],\"Quads\":[12,20],\"Ischios\":[10,18],\"Fessiers\":[10,18],\"Mollets\":[8,20],\"Abdos\":[8,20]};\n\nfunction volumeFrom(plan){const v={};muscles.forEach(m=>v[m]=0); plan.forEach(d=>d.ex.forEach(([name,sets])=>{const def=EXER[name]; if(!def) return; Object.entries(def.m).forEach(([m,w])=>v[m]+=sets*w)})); Object.keys(v).forEach(k=>v[k]=round(v[k],1)); return v}\nfunction suggestion(entries,[mn,mx]){ if(!entries||entries.length===0) return {msg:\"Commence \u00e0 mi-plage.\",delta:0}; const last=entries[entries.length-1]; if(!last?.reps) return {msg:\"Entre tes reps pour sugg\u00e9rer la charge.\",delta:0}; if(last.reps>=mx) return {msg:\"+2,5 \u00e0 5% semaine pro.\",delta:+0.03}; if(last.reps<mn) return {msg:\"Sous la plage : -5% ou vise la borne basse.\",delta:-0.05}; return {msg:\"Garde la charge, ajoute +1 rep.\",delta:0}}\n\n// ---------- Calories & Steps ----------\nfunction stepLengthCm(h){return round(0.415*(h||175),0)}; function paceToMET(k){if(k<=3)return 2.3;if(k<=4)return 2.9;if(k<=5)return 3.5;if(k<=6)return 4.3;if(k<=7)return 5;return 7}\nfunction kcalPerStepEstimate(profile,paceKmh){const met=paceToMET(paceKmh||4.5);const kg=profile.weightKg||80;const stepLen=stepLengthCm(profile.heightCm||180)/100;const stepsPerMin=(paceKmh||4.5)*1000/60/stepLen;const kcalPerMin=met*3.5*kg/200;return kcalPerMin/stepsPerMin}\n\n// ---------- OFF & Photo helpers ----------\nasync function scanBarcode(videoEl,onResult,onError){try{const cr=new ZXing.BrowserMultiFormatReader();const devices=await cr.listVideoInputDevices();const deviceId=devices[0]?.deviceId;await cr.decodeOnceFromVideoDevice(deviceId,videoEl,(res,err)=>{ if(res){onResult(res.text);cr.reset()} if(err && !(err instanceof ZXing.NotFoundException)){onError?.(String(err))}})}catch(e){onError?.(String(e))}}\nasync function fetchOFF(barcode){const url=`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`;try{const r=await fetch(url);const j=await r.json();if(j&&j.product){const p=j.product;return {name:p.product_name||'Produit OFF',kcalPer100:+p.nutriments['energy-kcal_100g']||null,proteinPer100:+p.nutriments['proteins_100g']||0,carbsPer100:+p.nutriments['carbohydrates_100g']||0,fatPer100:+p.nutriments['fat_100g']||0}}}catch(e){}return null}\n\n// ---------- Tiny Line Chart (SVG) ----------\nfunction LineChart({data,yKey=\"y\"}){\n  const w=800,h=200,pad=24; const xs=data.map((_,i)=>i); const ys=data.map(d=>d[yKey]||0);\n  const minY=Math.min(...ys,0),maxY=Math.max(...ys,1);\n  const sx=i=> pad + (i*(w-2*pad))/Math.max(1,(xs.length-1||1));\n  const sy=y=> h-pad - ((y-minY)*(h-2*pad))/Math.max(1,(maxY-minY||1));\n  const pts=data.map((d,i)=> `${sx(i)},${sy(d[yKey])}`).join(\" \");\n  return <div className=\"chart\"><svg viewBox={`0 0 ${w} ${h}`}>\n    <defs><linearGradient id=\"g\" x1=\"0\" x2=\"0\" y1=\"0\" y2=\"1\"><stop offset=\"0%\" stop-color=\"#73e0ff88\"/><stop offset=\"100%\" stop-color=\"#73e0ff08\"/></linearGradient></defs>\n    <rect x=\"0\" y=\"0\" width={w} height={h} fill=\"#0c162a\"/>\n    {[0.25,0.5,0.75].map((t,i)=>(<line key={i} x1={pad} x2={w-pad} y1={pad+t*(h-2*pad)} y2={pad+t*(h-2*pad)} stroke=\"#193052\"/>))}\n    {data.length>1 && <polyline points={pts} fill=\"none\" stroke=\"#73e0ff\" stroke-width=\"2\"/>}\n    {data.length>1 && <polygon points={`${pts} ${w-pad},${h-pad} ${pad},${h-pad}`} fill=\"url(#g)\"/>}\n  </svg></div>;\n}\n\n// ---------- App ----------\nfunction Tabs({active,onSet}){\n  const items=[\n    [\"profile\",\"Profil\"],\n    [\"plan\",\"Programme\"],\n    [\"log\",\"S\u00e9ances\"],\n    [\"analytics\",\"Analyse\"],\n    [\"targets\",\"Cibles\"],\n    [\"cal\",\"Calories\"],\n    [\"sync\",\"Sync\"],\n    [\"coach\",\"Coaching\"],\n    [\"export\",\"Export\"],\n  ];\n  return <div className=\"tabs\">{items.map(([k,lab])=>(<button key={k} className={\"tab\"+(active===k?\" active\":\"\")} onClick={()=>onSet(k)}>{lab}</button>))}</div>\n}\n\nfunction App(){\n  // Core states\n  const [profile,setProfile]=useLocal(\"mp_fusion_profile\", defaultProfile);\n  const [plan,setPlan]=useLocal(\"mp_fusion_plan\", PLAN4);\n  const [logs,setLogs]=useLocal(\"mp_fusion_logs\", {});\n  const [targets,setTargets]=useLocal(\"mp_fusion_targets\", defaultTargets);\n  const [weekOff,setWeekOff]=useLocal(\"mp_fusion_weekOff\", 0);\n  const [tab,setTab]=useLocal(\"mp_fusion_tab\", \"cal\");\n\n  // Nutrition states\n  const [cfg,setCfg]=useLocal(\"mp_fusion_cfg\", { paceKmh:4.8, kcalPerStep:null });\n  const [days,setDays]=useLocal(\"mp_fusion_days\", {});\n  const [coach,setCoach]=useLocal(\"mp_fusion_coach\", { enabled:true, lowThresh:-200, highThresh:150 });\n  const [sync,setSync]=useLocal(\"mp_fusion_sync\", { mode:\"none\", supabaseUrl:\"\", supabaseAnon:\"\", table:\"musclepilot_logs\", sheetsWebhook:\"\" });\n\n  // Derived\n  const base=macrosFrom(profile);\n  const iso=getISOWeek(); const currentWeek=`${iso.year}-W${iso.week+weekOff}`;\n  const volume=useMemo(()=>volumeFrom(plan),[plan]);\n\n  // Calories derived\n  const today=dayKey(); const day=days[today]||{foods:[],steps:0};\n  const kcalStep = cfg.kcalPerStep ?? kcalPerStepEstimate(profile,cfg.paceKmh);\n  const stepsKcal = Math.round((day.steps||0)*kcalStep);\n  const dynTarget = Math.round(base.target + stepsKcal);\n  const totals = day.foods.reduce((a,f)=>({kcal:a.kcal+(+f.kcal||0),p:a.p+(+f.protein||0),c:a.c+(+f.carbs||0),f:a.f+(+f.fat||0)}),{kcal:0,p:0,c:0,f:0});\n  const remaining = Math.round(dynTarget - totals.kcal);\n\n  // Logs helpers\n  function addLog(dayIdx, name, setIndex, weight, reps){\n    setLogs(prev=>{\n      const w=prev[currentWeek]||{}; const d=w[dayIdx]||{}; const arr=d[name]||[];\n      return {...prev,[currentWeek]:{...w,[dayIdx]:{...d,[name]:[...arr,{set:setIndex,weight,reps}]}}}\n    })\n  }\n  function entriesForWeek(weekKey,name){\n    const w=logs[weekKey]||{}; const days=Object.values(w); const arr=[]; days.forEach(d=>{(d[name]||[]).forEach(s=>arr.push({...s}))}); return arr;\n  }\n  const [selEx,setSelEx]=useState(\"Bench Press\");\n  const e1Data=useMemo(()=>{\n    const keys=Object.keys(logs).sort(); const arr=[];\n    keys.forEach(k=>{ let best=0; const w=logs[k]||{}; Object.values(w).forEach(d=>{ (d[selEx]||[]).forEach(s=>{ const est=epley1RM(s.weight,s.reps)||0; if(est>best) best=est; })}); if(best>0) arr.push({y:round(best,1)}) })\n    return arr;\n  },[logs,selEx]);\n\n  // Coaching notif\n  useEffect(()=>{ if(!coach.enabled) return; try{ if(\"Notification\" in window){ if(Notification.permission===\"default\"){ Notification.requestPermission() } }\n    if(remaining<=coach.lowThresh){ if(navigator.vibrate) navigator.vibrate([12,30,12]); }\n    if(remaining>=coach.highThresh){ if(navigator.vibrate) navigator.vibrate([12,12,12]); }\n  }catch{}\n  },[remaining,coach.enabled]);\n\n  // UI helpers\n  function saveDay(u){ setDays(prev=>({...prev,[today]:{...(prev[today]||{}),...u}})) }\n  function updateSets(dayIdx, exIdx, newSets){ setPlan(prev=>prev.map((d,i)=> i!==dayIdx? d: ({...d, ex:d.ex.map((e,j)=> j!==exIdx? e: [e[0], Math.max(1,newSets)])})) ) }\n\n  return (<div className=\"wrap\">\n    <div className=\"header\"><div className=\"title\">MusclePilot \u2014 Dark Knight FUSION</div><div className=\"badge\">\ud83e\udd87 Gotham Tech \u00b7 {today}</div></div>\n    <Tabs active={tab} onSet={setTab} />\n\n    {tab===\"profile\" && (<div className=\"card\">\n      <b>Profil & Macros</b>\n      <div className=\"grid cols-4\" style={{marginTop:8}}>\n        <div><label>Taille (cm)</label><input type=\"number\" value={profile.heightCm} onChange={e=>setProfile({...profile,heightCm:+e.target.value})}/></div>\n        <div><label>Poids (kg)</label><input type=\"number\" step=\"0.1\" value={profile.weightKg} onChange={e=>setProfile({...profile,weightKg:+e.target.value})}/></div>\n        <div><label>\u00c2ge</label><input type=\"number\" value={profile.age} onChange={e=>setProfile({...profile,age:+e.target.value})}/></div>\n        <div><label>Sexe</label><select value={profile.sex} onChange={e=>setProfile({...profile,sex:e.target.value})}><option value=\"M\">Homme</option><option value=\"F\">Femme</option></select></div>\n        <div><label>Objectif</label><select value={profile.goal} onChange={e=>setProfile({...profile,goal:e.target.value})}><option value=\"recomp\">Recomposition</option><option value=\"cut\">S\u00e8che</option><option value=\"bulk\">Prise de masse</option></select></div>\n        <div><label>D\u00e9ficit (%)</label><input type=\"number\" value={Math.round((profile.deficitPct||0.10)*100)} onChange={e=>setProfile({...profile,deficitPct:(+e.target.value||0)/100})}/></div>\n        <div><label>Activit\u00e9 (facteur)</label><select value={String(profile.activityFactor)} onChange={e=>setProfile({...profile,activityFactor:+e.target.value})}>{[1.2,1.375,1.55,1.6,1.725,1.9].map(v=>(<option key={v} value={v}>{v}</option>))}</select></div>\n        <div className=\"kpi\"><span className=\"pill\">Cible kcal</span><b>{base.target}</b></div>\n        <div className=\"kpi\"><span className=\"pill\">Prot (g)</span><b>{base.proteinG}</b></div>\n        <div className=\"kpi\"><span className=\"pill\">Lip (g)</span><b>{base.fatG}</b></div>\n        <div className=\"kpi\"><span className=\"pill\">Gluc (g)</span><b>{base.carbsG}</b></div>\n      </div>\n    </div>)}\n\n    {tab===\"plan\" && (<div className=\"card\">\n      <b>Programme \u2014 {profile.sessionsPerWeek} s\u00e9ances/sem.</b>\n      <div className=\"hint\">Plan 4 jours pr\u00e9-rempli (ajuste les s\u00e9ries).</div>\n      <div className=\"hr\"></div>\n      <div className=\"grid cols-2\">\n        {plan.map((d,dayIdx)=>(\n          <div key={dayIdx} className=\"card\" style={{background:\"#0b152b\"}}>\n            <div className=\"row\" style={{justifyContent:\"space-between\"}}>\n              <b>Jour {dayIdx+1} \u2014 {d.name}</b><span className=\"pill\">Batman Split</span>\n            </div>\n            <div>\n              {d.ex.map(([name,sets],exIdx)=>(\n                <div key={exIdx} className=\"tile\" style=\"margin:6px 0\">\n                  <div>\n                    <div><b>{name}</b></div>\n                    <div className=\"small\">{(EXER[name]?.rr||[8,12]).join(\"\u2013\")} reps</div>\n                  </div>\n                  <div className=\"row\">\n                    <label>Sets</label>\n                    <input style=\"width:90px\" type=\"number\" min=\"1\" value={sets} onChange={e=>updateSets(dayIdx,exIdx, +e.target.value)}/>\n                  </div>\n                </div>\n              ))}\n            </div>\n          </div>\n        ))}\n      </div>\n      <div className=\"hr\"></div>\n      <b>Volume hebdomadaire (sets effectifs)</b>\n      <div className=\"grid cols-4\" style={{marginTop:8}}>\n        {muscles.map(m=>{\n          const val=volume[m]||0; const [lo,hi]=targets[m]||[0,0];\n          const cls = val<lo? \"bad\": (val>hi? \"warn\":\"good\");\n          return (<div key={m} className=\"tile\"><span>{m}</span><b className={cls}>{val}</b></div>)\n        })}\n      </div>\n    </div>)}\n\n    {tab===\"log\" && (<div className=\"card\">\n      <b>Journal \u2014 semaine {currentWeek}</b>\n      <div className=\"row\" style=\"margin-top:6px\">\n        <button className=\"btn\" onClick={()=>setWeekOff(weekOff-1)}>-1 semaine</button>\n        <button className=\"btn\" onClick={()=>setWeekOff(0)}>Cette semaine</button>\n        <button className=\"btn\" onClick={()=>setWeekOff(weekOff+1)}>+1 semaine</button>\n      </div>\n      <div className=\"hr\"></div>\n      {plan.map((d,dayIdx)=>(\n        <div key={dayIdx} className=\"card\" style=\"background:#0b152b\">\n          <b>{d.name}</b>\n          {d.ex.map(([name,sets],exIdx)=>{\n            const rr=EXER[name]?.rr||[8,12]; const entries=entriesForWeek(currentWeek,name); const sugg=suggestion(entries,rr);\n            return (<div key={exIdx} className=\"card\" style=\"background:#0a1326\">\n              <div className=\"row\" style=\"justify-content:space-between\">\n                <div><b>{name}</b><div className=\"small\">Cible {sets}\u00d7{rr[0]}\u2013{rr[1]} reps</div></div>\n                <div className=\"small\">{sugg.msg}</div>\n              </div>\n              <div className=\"grid cols-4\" style=\"margin-top:8px\">\n                {Array.from({length:sets}).map((_,sIdx)=> <SetLogger key={sIdx} onAdd={(w,r)=>addLog(dayIdx,name,sIdx+1,w,r)} />)}\n              </div>\n            </div>)\n          })}\n        </div>\n      ))}\n    </div>)}\n\n    {tab===\"analytics\" && (<div className=\"card\">\n      <b>Analyse \u2014 e1RM</b>\n      <div className=\"row\" style=\"margin-top:8px\">\n        <label>Exercice</label>\n        <select value={selEx} onChange={e=>setSelEx(e.target.value)}>\n          {Object.keys(EXER).map(k=>(<option key={k} value={k}>{k}</option>))}\n        </select>\n      </div>\n      <div style=\"margin-top:8px\"><LineChart data={e1Data}/></div>\n      <div className=\"legend\"><span className=\"pill\">estimation Epley</span></div>\n    </div>)}\n\n    {tab===\"targets\" && (<div className=\"card\">\n      <b>Cibles de volume (sets/semaine)</b>\n      <div className=\"grid cols-3\" style=\"margin-top:8px\">\n        {muscles.map(m=>{\n          const [lo,hi]=targets[m]||[0,0];\n          return (<div key={m} className=\"tile\">\n            <div style=\"min-width:120px\">{m}</div>\n            <div className=\"row\"><input type=\"number\" style=\"width:80px\" value={lo} onChange={e=>setTargets({...targets,[m]:[+e.target.value,Math.max(+e.target.value,hi)]})}/>\n              <input type=\"number\" style=\"width:80px\" value={hi} onChange={e=>setTargets({...targets,[m]:[lo,Math.max(+e.target.value,lo)]})}/></div>\n          </div>)\n        })}\n      </div>\n      <div className=\"row\" style=\"margin-top:8px\">\n        <button className=\"btn\" onClick={()=>setTargets(defaultTargets)}>R\u00e9initialiser</button>\n        <span className=\"hint\">Les couleurs du tableau Programme se mettent \u00e0 jour automatiquement.</span>\n      </div>\n    </div>)}\n\n    {tab===\"cal\" && (<div className=\"card\">\n      <b>Calories & Pas</b>\n      <div className=\"grid cols-3\" style=\"margin-top:8px\">\n        <div className=\"kpi\"><span className=\"pill\">Cible repos</span><b>{base.target} kcal</b></div>\n        <div className=\"kpi\"><span className=\"pill\">kcal / pas (estim.)</span><b>{round(kcalStep,3)}</b></div>\n        <div className=\"kpi\"><span className=\"pill\">kcal des pas</span><b>{stepsKcal} kcal</b></div>\n      </div>\n      <div className=\"grid cols-3\" style=\"margin-top:8px\">\n        <div><label>Pas du jour</label><input type=\"number\" value={day.steps||0} onChange={e=>saveDay({steps:+e.target.value})}/></div>\n        <div><label>Allure (km/h)</label><input type=\"number\" step=\"0.1\" value={cfg.paceKmh} onChange={e=>setCfg({...cfg,paceKmh:+e.target.value})}/><div className=\"hint\">Impacte l\u2019estimation kcal/pas.</div></div>\n        <div className=\"kpi\"><span className=\"pill\">Cible ajust\u00e9e</span><b>{dynTarget} kcal</b></div>\n      </div>\n\n      <div className=\"card\" style=\"margin-top:12px\">\n        <b>Ajouter un aliment</b>\n        <FoodForm onAdd={(f)=>saveDay({foods:[...(day.foods||[]), {...f, id:Date.now()}]})} />\n        <div className=\"grid cols-2\" style=\"margin-top:12px\">\n          <BarcodeBlock onAdd={(f)=>saveDay({foods:[...(day.foods||[]), {...f, id:Date.now()}]})}/>\n          <PhotoBlock onAdd={(f)=>saveDay({foods:[...(day.foods||[]), {...f, id:Date.now()}]})}/>\n        </div>\n      </div>\n\n      <div className=\"card\">\n        <b>Aliments du jour</b>\n        {(day.foods||[]).length===0 && <div className=\"hint\">Aucun aliment ajout\u00e9.</div>}\n        {(day.foods||[]).map(f=>(\n          <div key={f.id} className=\"tile\" style=\"margin:6px 0\">\n            <div>\n              <div><b>{f.name||\"Aliment\"}</b> {f.grams? <span className=\"small\">({f.grams} g)</span>: null}</div>\n              <div className=\"small\">{Math.round(f.kcal)} kcal \u00b7 P {f.protein} g \u00b7 G {f.carbs} g \u00b7 L {f.fat} g {f.barcode? `\u00b7 code ${f.barcode}`: \"\"}</div>\n            </div>\n            <button className=\"btn danger\" onClick={()=>saveDay({foods:(day.foods||[]).filter(x=>x.id!==f.id)})}>Supprimer</button>\n          </div>\n        ))}\n      </div>\n\n      <div className=\"grid cols-3\" style=\"margin-top:8px\">\n        <div className=\"kpi\"><span className=\"pill\">Total kcal</span><b>{Math.round((day.foods||[]).reduce((s,f)=>s+(+f.kcal||0),0))}</b></div>\n        <div className=\"kpi\"><span className=\"pill\">Reste</span><b className={remaining<0?'bad':'good'}>{remaining}</b></div>\n        <div className=\"kpi\"><span className=\"pill\">BMR / TDEE</span><b>{base.bmr} / {base.tdee}</b></div>\n      </div>\n    </div>)}\n\n    {tab===\"sync\" && (<div className=\"card\">\n      <b>Synchronisation</b>\n      <div className=\"row\" style=\"margin-top:8px\">\n        <label>Mode</label>\n        <select value={sync.mode} onChange={e=>setSync({...sync,mode:e.target.value})}>\n          <option value=\"none\">D\u00e9sactiv\u00e9</option>\n          <option value=\"supabase\">Supabase</option>\n          <option value=\"sheets\">Google Sheets (webhook)</option>\n        </select>\n        <button className=\"btn primary\" onClick={()=>doPush({profile,plan,logs,targets,weekOff,cfg,days,coach})}>Pousser</button>\n        <button className=\"btn\" onClick={()=>doPull()}>R\u00e9cup\u00e9rer</button>\n      </div>\n      {sync.mode===\"supabase\" && (<div className=\"grid cols-2\" style=\"margin-top:8px\">\n        <div><label>Supabase URL</label><input value={sync.supabaseUrl} onChange={e=>setSync({...sync,supabaseUrl:e.target.value})} placeholder=\"https://YOUR-PROJECT.supabase.co\"/></div>\n        <div><label>Anon Key</label><input value={sync.supabaseAnon} onChange={e=>setSync({...sync,supabaseAnon:e.target.value})} placeholder=\"ey...\"/></div>\n        <div><label>Table</label><input value={sync.table} onChange={e=>setSync({...sync,table:e.target.value})} placeholder=\"musclepilot_logs\"/></div>\n        <div className=\"hint\">Sch\u00e9ma: id text (PK), data jsonb. Une seule ligne id='singleton'.</div>\n      </div>)}\n      {sync.mode===\"sheets\" && (<div className=\"grid cols-2\" style=\"margin-top:8px\">\n        <div><label>Webhook (Apps Script)</label><input value={sync.sheetsWebhook} onChange={e=>setSync({...sync,sheetsWebhook:e.target.value})} placeholder=\"https://script.google.com/macros/s/XXXX/exec\"/></div>\n        <div className=\"hint\">Le script re\u00e7oit un JSON et l\u2019\u00e9crit dans une feuille Google.</div>\n      </div>)}\n    </div>)}\n\n    {tab===\"coach\" && (<div className=\"card\">\n      <b>Mode coaching</b>\n      <div className=\"row\" style=\"margin-top:8px\">\n        <label>Activer</label>\n        <select value={String(coach.enabled)} onChange={e=>setCoach({...coach,enabled:e.target.value==='true'})}>\n          <option value=\"true\">Oui</option><option value=\"false\">Non</option>\n        </select>\n      </div>\n      <div className=\"grid cols-2\" style=\"margin-top:8px\">\n        <div><label>Alerte \u201csous la cible\u201d quand Reste \u2264</label><input type=\"number\" value={coach.lowThresh} onChange={e=>setCoach({...coach,lowThresh:+e.target.value})}/></div>\n        <div><label>Alerte \u201cau-dessus\u201d quand Reste \u2265</label><input type=\"number\" value={coach.highThresh} onChange={e=>setCoach({...coach,highThresh:+e.target.value})}/></div>\n      </div>\n      <div className=\"hint\">Notifications locales + vibration (si autoris\u00e9es).</div>\n    </div>)}\n\n    {tab===\"export\" && (<div className=\"card\">\n      <b>Export & Import</b>\n      <div className=\"row\" style=\"margin-top:8px\">\n        <button className=\"btn\" onClick={()=>{\n          const rows=[[\"Week\",\"Day\",\"Exercise\",\"Set\",\"Weight\",\"Reps\"]];\n          Object.entries(logs).forEach(([week,days])=>{\n            Object.entries(days).forEach(([dIdx,exs])=>{\n              Object.entries(exs).forEach(([name,sets])=>{\n                sets.forEach(s=>rows.push([week,Number(dIdx)+1,name,s.set,s.weight,s.reps]))\n              })\n            })\n          });\n          const csv=rows.map(r=>r.join(\",\")).join(\"\\n\");\n          const blob=new Blob([csv],{type:\"text/csv\"});\n          const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download='musclepilot_logs.csv'; a.click(); URL.revokeObjectURL(url);\n        }}>Export CSV (s\u00e9ances)</button>\n        <button className=\"btn\" onClick={()=>{\n          const data={profile,plan,logs,targets,weekOff,cfg,days,coach};\n          const blob=new Blob([JSON.stringify(data)],{type:\"application/json\"});\n          const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url;a.download='musclepilot_backup.json'; a.click(); URL.revokeObjectURL(url);\n        }}>Export JSON (tout)</button>\n      </div>\n\n      <div className=\"card\" style=\"margin-top:12px\">\n        <b>Importer JSON</b>\n        <textarea id=\"importArea\" rows=\"6\" placeholder='Colle ici un JSON export\u00e9'></textarea>\n        <div className=\"row\" style=\"margin-top:8px\">\n          <button className=\"btn\" onClick={()=>{\n            try{\n              const txt=document.getElementById('importArea').value; const data=JSON.parse(txt);\n              if(confirm(\"Fusionner (OK) ou Remplacer (Annuler) ?\")){\n                localStorage.setItem('mp_fusion_profile',JSON.stringify(data.profile||defaultProfile));\n                localStorage.setItem('mp_fusion_plan',JSON.stringify(data.plan||PLAN4));\n                localStorage.setItem('mp_fusion_logs',JSON.stringify({...JSON.parse(localStorage.getItem('mp_fusion_logs')||'{}'), ...(data.logs||{})}));\n                localStorage.setItem('mp_fusion_targets',JSON.stringify(data.targets||defaultTargets));\n                localStorage.setItem('mp_fusion_weekOff',JSON.stringify(data.weekOff||0));\n                localStorage.setItem('mp_fusion_cfg',JSON.stringify(data.cfg||{}));\n                localStorage.setItem('mp_fusion_days',JSON.stringify({...JSON.parse(localStorage.getItem('mp_fusion_days')||'{}'), ...(data.days||{})}));\n                localStorage.setItem('mp_fusion_coach',JSON.stringify(data.coach||{}));\n              } else {\n                localStorage.setItem('mp_fusion_profile',JSON.stringify(data.profile||defaultProfile));\n                localStorage.setItem('mp_fusion_plan',JSON.stringify(data.plan||PLAN4));\n                localStorage.setItem('mp_fusion_logs',JSON.stringify(data.logs||{}));\n                localStorage.setItem('mp_fusion_targets',JSON.stringify(data.targets||defaultTargets));\n                localStorage.setItem('mp_fusion_weekOff',JSON.stringify(data.weekOff||0));\n                localStorage.setItem('mp_fusion_cfg',JSON.stringify(data.cfg||{}));\n                localStorage.setItem('mp_fusion_days',JSON.stringify(data.days||{}));\n                localStorage.setItem('mp_fusion_coach',JSON.stringify(data.coach||{}));\n              }\n              alert(\"Import effectu\u00e9. Recharge la page.\");\n            }catch(e){ alert(\"JSON invalide: \"+e.message) }\n          }}>Importer</button>\n        </div>\n      </div>\n    </div>)}\n  </div>);\n}\n\n// -------- Components: Set Logger & Nutrition Blocks --------\nfunction SetLogger({onAdd}){\n  const [w,setW]=useState(\"\"),[r,setR]=useState(\"\");\n  return (<div className=\"setbox\">\n    <label>Poids (kg)</label><input type=\"number\" inputMode=\"decimal\" value={w} onChange={e=>setW(e.target.value)}/>\n    <label>Reps</label><input type=\"number\" inputMode=\"numeric\" value={r} onChange={e=>setR(e.target.value)}/>\n    <div className=\"row\" style=\"margin-top:6px\"><button className=\"btn primary\" onClick={()=>onAdd(+w||0,+r||0)}>Ajouter</button></div>\n  </div>)\n}\n\nfunction FoodForm({onAdd}){\n  const [name,setName]=useState(\"\"),[kcal,setK]=useState(\"\"),[p,setP]=useState(\"\"),[c,setC]=useState(\"\"),[f,setF]=useState(\"\"),[g,setG]=useState(\"\");\n  return (<div className=\"grid cols-3\">\n    <div><label>Nom</label><input value={name} onChange={e=>setName(e.target.value)} placeholder=\"Aliment\" /></div>\n    <div><label>kcal</label><input type=\"number\" value={kcal} onChange={e=>setK(+e.target.value)} /></div>\n    <div><label>Prot (g)</label><input type=\"number\" value={p} onChange={e=>setP(+e.target.value)} /></div>\n    <div><label>Gluc (g)</label><input type=\"number\" value={c} onChange={e=>setC(+e.target.value)} /></div>\n    <div><label>Lip (g)</label><input type=\"number\" value={f} onChange={e=>setF(+e.target.value)} /></div>\n    <div><label>Grammage (g)</label><input type=\"number\" value={g} onChange={e=>setG(+e.target.value)} /></div>\n    <div className=\"row\" style=\"align-items:end\">\n      <button className=\"btn primary\" onClick={()=>{ onAdd({name,kcal:+kcal||0,protein:+p||0,carbs:+c||0,fat:+f||0,grams:+g||null}); setName('');setK('');setP('');setC('');setF('');setG(''); }}>Ajouter</button>\n    </div>\n  </div>)\n}\n\nfunction BarcodeBlock({onAdd}){\n  const [barcode,setBarcode]=useState(\"\"),[status,setStatus]=useState(\"Pr\u00eat\"); const videoRef=useRef(null),[grams,setGrams]=useState(100);\n  async function doScan(){ setStatus(\"Scan en cours\u2026\"); scanBarcode(videoRef.current,(code)=>{setBarcode(code);setStatus(\"Code d\u00e9tect\u00e9 : \"+code)},(err)=>setStatus(\"Erreur: \"+err)) }\n  async function lookup(){ try{ setStatus(\"Recherche OFF\u2026\"); const info=await fetchOFF(barcode); if(!info){ setStatus(\"Produit non trouv\u00e9\"); return; } setStatus(\"Trouv\u00e9 : \"+(info.name||\"\"));\n    const factor=(+grams||100)/100; onAdd({ name:info.name||\"Produit OFF\", kcal:(info.kcalPer100||0)*factor, protein:(info.proteinPer100||0)*factor, carbs:(info.carbsPer100||0)*factor, fat:(info.fatPer100||0)*factor, grams:+grams||100, barcode }); }catch(e){ setStatus(\"Erreur OFF\"); } }\n  return (<div className=\"card\"><b>Scan code-barres</b>\n    <div className=\"row\" style=\"margin-top:6px\">\n      <button className=\"btn\" onClick={doScan}>Activer la cam\u00e9ra</button>\n      <input placeholder=\"Code-barres\" value={barcode} onChange={e=>setBarcode(e.target.value)} />\n      <input type=\"number\" value={grams} onChange={e=>setGrams(+e.target.value)} /><span className=\"small\">g</span>\n      <button className=\"btn primary\" onClick={lookup}>Ajouter depuis OFF</button>\n    </div>\n    <video ref={videoRef} style=\"width:100%;border:1px solid var(--border);border-radius:8px;margin-top:8px\" muted playsInline></video>\n    <div className=\"hint\">{status}</div>\n  </div>)\n}\n\nfunction PhotoBlock({onAdd}){\n  const [photo,setPhoto]=useState(null),[preset,setPreset]=useState(\"none\"),[grams,setGrams]=useState(300),[kcal,setK]=useState(0),[p,setP]=useState(0),[c,setC]=useState(0),[f,setF]=useState(0);\n  useEffect(()=>{ const per100={\"none\":{k:0,p:0,c:0,f:0},\"chicken_rice\":{k:165,p:31,c:0,f:3.6},\"pasta_bolo\":{k:150,p:7,c:22,f:4},\"salmon_potatoes\":{k:200,p:18,c:10,f:10},\"salad_olive\":{k:120,p:3,c:10,f:8}}[preset];\n    const factor=(+grams||100)/100; setK(Math.round(per100.k*factor)); setP(Number((per100.p*factor).toFixed(1))); setC(Number((per100.c*factor).toFixed(1))); setF(Number((per100.f*factor).toFixed(1)));\n  },[preset,grams]);\n  function onFile(e){ const file=e.target.files?.[0]; if(!file) return; const rdr=new FileReader(); rdr.onload=()=>setPhoto(rdr.result); rdr.readAsDataURL(file); }\n  return (<div className=\"card\"><b>Photo du plat (estimation)</b>\n    <div className=\"grid cols-3\" style=\"margin-top:6px\">\n      <div><label>Photo</label><input type=\"file\" accept=\"image/*\" onChange={onFile} /></div>\n      <div><label>Preset</label><select value={preset} onChange={e=>setPreset(e.target.value)}>\n        <option value=\"none\">\u2014</option><option value=\"chicken_rice\">Poulet & riz (100g)</option><option value=\"pasta_bolo\">P\u00e2tes bolo (100g)</option>\n        <option value=\"salmon_potatoes\">Saumon & pommes (100g)</option><option value=\"salad_olive\">Salade + huile (100g)</option>\n      </select></div>\n      <div><label>Grammage (g)</label><input type=\"number\" value={grams} onChange={e=>setGrams(+e.target.value)} /></div>\n      <div><label>kcal</label><input type=\"number\" value={kcal} onChange={e=>setK(+e.target.value)} /></div>\n      <div><label>Prot (g)</label><input type=\"number\" value={p} onChange={e=>setP(+e.target.value)} /></div>\n      <div><label>Gluc (g)</label><input type=\"number\" value={c} onChange={e=>setC(+e.target.value)} /></div>\n      <div><label>Lip (g)</label><input type=\"number\" value={f} onChange={e=>setF(+e.target.value)} /></div>\n    </div>\n    <div className=\"row\" style=\"margin-top:8px\">\n      <button className=\"btn primary\" onClick={()=>onAdd({name:\"Plat (photo)\",grams,kcal,protein:p,carbs:c,fat:f,photoDataUrl:photo})}>Ajouter le plat</button>\n      {photo? <a className=\"btn\" href={photo} target=\"_blank\" rel=\"noreferrer\">Voir photo</a>: null}\n    </div>\n  </div>)\n}\n\nasync function doPush(payload){\n  const sync=JSON.parse(localStorage.getItem('mp_fusion_sync')||'{}');\n  if(sync.mode!==\"supabase\" and sync.mode!==\"sheets\"){ alert(\"Choisis un mode de synchro.\"); return; }\n  try{\n    if(sync.mode===\"supabase\"){\n      const res=await fetch(`${sync.supabaseUrl}/rest/v1/${sync.table}`,{\n        method:\"POST\",headers:{\"Content-Type\":\"application/json\",\"apikey\":sync.supabaseAnon,\"Authorization\":`Bearer ${sync.supabaseAnon}`,\"Prefer\":\"resolution=merge-duplicates\"},\n        body: JSON.stringify([{id:\"singleton\",data:payload}])\n      }); if(!res.ok) throw new Error(\"HTTP \"+res.status); alert(\"Supabase: synchronisation envoy\u00e9e.\");\n    } else {\n      if(!sync.sheetsWebhook) throw new Error(\"Webhook manquant\");\n      const r=await fetch(sync.sheetsWebhook,{method:\"POST\",body:JSON.stringify(payload)}); if(!r.ok) throw new Error(\"HTTP \"+r.status); alert(\"Sheets: synchronisation envoy\u00e9e.\");\n    }\n  }catch(e){ alert(\"Erreur de synchronisation: \"+e.message) }\n}\nasync function doPull(){\n  const sync=JSON.parse(localStorage.getItem('mp_fusion_sync')||'{}');\n  if(sync.mode!==\"supabase\"){ alert(\"Le Pull n\u00e9cessite Supabase.\"); return; }\n  try{\n    const r=await fetch(`${sync.supabaseUrl}/rest/v1/${sync.table}?id=eq.singleton&select=*`,{headers:{\"apikey\":sync.supabaseAnon,\"Authorization\":`Bearer ${sync.supabaseAnon}`}});\n    if(!r.ok) throw new Error(\"HTTP \"+r.status);\n    const arr=await r.json(); const data=arr[0]?.data; if(!data) return alert(\"Aucune donn\u00e9e distante.\");\n    if(confirm(\"Fusionner (OK) ou Remplacer (Annuler) ?\")){\n      for(const [k,v] of Object.entries(data)){ const key='mp_fusion_'+k; const curr=JSON.parse(localStorage.getItem(key)||'null'); if(v && typeof v==='object' && !Array.isArray(v)){ localStorage.setItem(key, JSON.stringify({...curr,...v})) } else { localStorage.setItem(key, JSON.stringify(v)) } }\n    } else {\n      for(const [k,v] of Object.entries(data)){ const key='mp_fusion_'+k; localStorage.setItem(key, JSON.stringify(v)) }\n    }\n    alert(\"R\u00e9cup\u00e9ration termin\u00e9e. Recharge la page.\");\n  }catch(e){ alert(\"Erreur Pull: \"+e.message) }\n}\n\nconst root=ReactDOM.createRoot(document.getElementById('root')); root.render(<App/>);\n";
+        document.body.appendChild(appScript);
+        setTimeout(()=>{ showDiag("Prêt ✅"); setTimeout(()=>{document.getElementById('diag').style.display='none'}, 2000); }, 1000);
+      });
+    });
+  });
+});
 </script>
+
+<noscript style="color:#fff; padding:12px; display:block;">
+Active JavaScript pour utiliser l'application.
+</noscript>
 </body>
 </html>
