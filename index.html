@@ -1,338 +1,296 @@
 <!doctype html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>MusclePilot — Dark Knight FUSION (local)</title>
-  <style>
-    :root{--bg:#0a0e18;--panel:#0b1325;--panel2:#0d1730;--border:#12203a;--muted:#7a8aa6;--white:#e6eefc;--blue:#00a8ff;--yellow:#ffc700;--danger:#ff4d4d;--ok:#1be48b;--amber:#ffb300}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;
-      background:radial-gradient(900px 550px at 75% 8%, rgba(0,168,255,.10), rgba(0,0,0,0)),
-               radial-gradient(800px 520px at 15% 85%, rgba(255,199,0,.08), rgba(0,0,0,0)),var(--bg);
-      color:var(--white)}
-    .wrap{max-width:1180px;margin:0 auto;padding:16px}
-    .header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px}
-    .title{font-weight:900;font-size:22px;background:linear-gradient(90deg,var(--blue),#73e0ff,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
-    .badge{border:1px solid var(--border);background:var(--panel2);padding:8px 10px;border-radius:12px;font-size:12px;color:var(--muted)}
-    .tabs{display:flex;gap:8px;flex-wrap:wrap}
-    .tab{padding:10px 14px;border:1px solid var(--border);background:rgba(255,255,255,.02);border-radius:12px;color:var(--white);cursor:pointer}
-    .tab.active{outline:1px solid #1f2d4a;background:linear-gradient(180deg,#0f1b33,#0b1325)}
-    .card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 0 0 1px rgba(0,168,255,.04) inset}
-    .grid{display:grid;gap:12px}
-    @media(min-width:760px){.grid.cols-2{grid-template-columns:1fr 1fr}.grid.cols-3{grid-template-columns:1fr 1fr 1fr}.grid.cols-4{grid-template-columns:1fr 1fr 1fr 1fr}}
-    label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
-    input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#091020;color:var(--white)}
-    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .btn{padding:10px 14px;border:1px solid var(--border);background:#0e1830;color:#fff;border-radius:10px;cursor:pointer}
-    .btn.primary{background:linear-gradient(90deg,var(--blue),#73e0ff);color:#051024;border-color:#167fb1}
-    .btn.danger{background:#2a0f13;border-color:#5c1c24}
-    .tile{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:14px;padding:10px;background:#0c162a}
-    .small{font-size:12px;color:var(--muted)}
-    .kpi{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);background:#0c162a;border-radius:14px;padding:10px;align-items:flex-start}
-    .kpi b{font-size:18px}
-    .pill{font-size:11px;border:1px solid var(--border);padding:2px 8px;border-radius:999px;background:#0b1429;color:var(--muted)}
-    .hr{height:1px;background:linear-gradient(90deg,transparent,#162644,transparent);margin:10px 0}
-    .setbox{border:1px dashed #234;border-radius:10px;padding:8px}
-    .bad{color:var(--danger)} .good{color:var(--ok)} .warn{color:var(--amber)}
-    .chart{width:100%;height:220px;border:1px solid var(--border);border-radius:12px;background:#0c162a;position:relative}
-    .chart svg{position:absolute;top:0;left:0;width:100%;height:100%}
-  </style>
-
-  <script src="./lib/react.production.min.js"></script>
-  <script src="./lib/react-dom.production.min.js"></script>
-  <script src="./lib/babel.min.js"></script>
-  <!-- <script src="./lib/zxing.min.js"></script> -->
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>MusclePilot — MINI (Batman)</title>
+<style>
+  :root{--bg:#0a0e18;--panel:#0b1325;--panel2:#0d1730;--border:#12203a;--muted:#7a8aa6;--white:#e6eefc;--blue:#00a8ff;--yellow:#ffc700;--ok:#1be48b;--warn:#ffb300;--bad:#ff5757}
+  *{box-sizing:border-box} body{margin:0;background:radial-gradient(900px 550px at 70% 5%, rgba(0,168,255,.08),transparent),radial-gradient(700px 500px at 15% 85%, rgba(255,199,0,.06),transparent),var(--bg);color:var(--white);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:1100px;margin:0 auto;padding:16px}
+  .hdr{display:flex;align-items:center;justify-content:space-between;margin:8px 0 14px}
+  .title{font-weight:900;font-size:22px;letter-spacing:.2px;background:linear-gradient(90deg,var(--blue),#73e0ff,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .badge{border:1px solid var(--border);background:var(--panel2);padding:8px 10px;border-radius:12px;font-size:12px;color:var(--muted)}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+  .tab{padding:10px 14px;border:1px solid var(--border);background:#0e1830;border-radius:12px;color:#fff;cursor:pointer}
+  .tab.active{outline:1px solid #20304f;background:linear-gradient(180deg,#0f1b33,#0b1325)}
+  .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:14px;margin:12px 0}
+  .grid{display:grid;gap:10px}
+  @media(min-width:760px){.grid.c2{grid-template-columns:1fr 1fr}.grid.c3{grid-template-columns:1fr 1fr 1fr}.grid.c4{grid-template-columns:1fr 1fr 1fr 1fr}}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}
+  input,select{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#091020;color:#fff}
+  .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn{padding:10px 14px;border:1px solid var(--border);background:#0e1830;color:#fff;border-radius:10px;cursor:pointer}
+  .btn.primary{background:linear-gradient(90deg,var(--blue),#73e0ff);color:#051024;border-color:#167fb1}
+  .pill{font-size:11px;border:1px solid var(--border);padding:2px 8px;border-radius:999px;background:#0b1429;color:var(--muted)}
+  .tile{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:12px;padding:10px;background:#0c162a}
+  .small{font-size:12px;color:var(--muted)}
+  .advice.ok{color:var(--ok)} .advice.warn{color:var(--warn)} .advice.bad{color:var(--bad)} .advice.neut{color:#c8d4f0}
+  .hr{height:1px;background:linear-gradient(90deg,transparent,#162644,transparent);margin:10px 0}
+  .setbox{border:1px dashed #234;border-radius:10px;padding:8px}
+</style>
 </head>
 <body>
-  <div id="root"></div>
+<div class="wrap">
+  <div class="hdr"><div class="title">MusclePilot — MINI (Batman)</div><div class="badge">🦇 Gotham Tech</div></div>
+  <div id="tabs" class="tabs"></div>
 
-  <script type="text/babel">
-    const {useState,useEffect,useMemo,useRef} = React;
-    const round=(n,d=0)=>Number(n.toFixed(d));
-    function useLocal(key,init){const [v,setV]=useState(()=>{try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):init}catch{return init}});useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(v))}catch{}},[key,v]);return [v,setV]}
-    function dayKey(d=new Date()){return d.toISOString().slice(0,10)}
-    function getISOWeek(date=new Date()){const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const dayNum=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-dayNum);const yearStart=new Date(Date.UTC(d.getUTCFullYear(),0,1));const weekNo=Math.ceil((((d-yearStart)/86400000)+1)/7);return {year:d.getUTCFullYear(),week:weekNo}}
-    const epley1RM=(w,r)=> (w&&r? w*(1+r/30) : null);
+  <div id="view-program" class="card" style="display:none"></div>
+  <div id="view-log" class="card" style="display:none"></div>
+  <div id="view-advice" class="card" style="display:none"></div>
+  <div id="view-export" class="card" style="display:none"></div>
+</div>
 
-    const defaultProfile={sex:'M',age:31,heightCm:184,weightKg:79.2,sessionsPerWeek:4,activityFactor:1.6,goal:'recomp',deficitPct:0.10};
-    const BMR=p=>(10*p.weightKg+6.25*p.heightCm-5*p.age+(p.sex==='F'?-161:5));
-    function macrosFrom(p){const b=BMR(p),tdee=b*p.activityFactor;let target=tdee;if(p.goal==='recomp')target=tdee*(1-(p.deficitPct??0.10));if(p.goal==='cut')target=tdee*0.85;if(p.goal==='bulk')target=tdee*1.08;const proteinG=Math.round(2.2*p.weightKg);const fatG=Math.round((0.25*target)/9);const carbsG=Math.max(0,Math.round((target-proteinG*4-fatG*9)/4));return {bmr:round(b),tdee:round(tdee),target:round(target),proteinG,fatG,carbsG}}
+<script>
+(function(){
+  const LS_PLAN = "mp_mini_plan_v1";
+  const LS_LOGS = "mp_mini_logs_v1"; // structure: { "2025-W44": { dayIdx: { exName: [ {set,weight,reps,date} ] } } }
+  const TABS = [
+    ["program","Programme"],
+    ["log","Séances"],
+    ["advice","Conseils"],
+    ["export","Export"]
+  ];
 
-    const muscles=["Pecs","Delts_Ant","Delts_Lat","Dos","Biceps","Triceps","Quads","Ischios","Fessiers","Mollets","Abdos"];
-    const EXER={
-      "Bench Press":{m:{Pecs:.7,Delts_Ant:.2,Triceps:.1}, rr:[6,8]},
-      "Incline DB Press":{m:{Pecs:.6,Delts_Ant:.3,Triceps:.1}, rr:[8,10]},
-      "Dips":{m:{Pecs:.5,Triceps:.4,Delts_Ant:.1}, rr:[8,12]},
-      "Overhead DB Press":{m:{Delts_Ant:.6,Delts_Lat:.2,Triceps:.2}, rr:[8,12]},
-      "Lateral Raises":{m:{Delts_Lat:1}, rr:[12,15]},
-      "Face Pulls":{m:{Delts_Lat:.5,Dos:.5}, rr:[12,15]},
-      "Pull Ups":{m:{Dos:.7,Biceps:.3}, rr:[6,8]},
-      "Barbell Row":{m:{Dos:.8,Biceps:.2}, rr:[8,10]},
-      "Seated Cable Row":{m:{Dos:.8,Biceps:.2}, rr:[10,12]},
-      "Lat Pulldown":{m:{Dos:.8,Biceps:.2}, rr:[8,12]},
-      "Curl Bar":{m:{Biceps:1}, rr:[10,12]},
-      "Incline DB Curl":{m:{Biceps:1}, rr:[12,12]},
-      "Back Squat":{m:{Quads:.7,Fessiers:.2,Ischios:.1}, rr:[6,8]},
-      "Walking Lunge":{m:{Quads:.5,Fessiers:.4,Ischios:.1}, rr:[10,10]},
-      "Leg Press":{m:{Quads:.7,Fessiers:.2,Ischios:.1}, rr:[10,12]},
-      "Leg Extension":{m:{Quads:1}, rr:[12,15]},
-      "Romanian Deadlift":{m:{Ischios:.6,Fessiers:.3,Dos:.1}, rr:[6,8]},
-      "Hip Thrust":{m:{Fessiers:.7,Ischios:.2}, rr:[8,10]},
-      "Leg Curl":{m:{Ischios:1}, rr:[12,15]},
-      "Bulgarian Split Squat":{m:{Fessiers:.5,Quads:.4,Ischios:.1}, rr:[10,12]},
-      "Calf Raise":{m:{Mollets:1}, rr:[12,20]},
-      "Plank":{m:{Abdos:1}, rr:[45,60]},
-      "Hanging Leg Raises":{m:{Abdos:1}, rr:[10,15]},
+  // ---- Data model
+  const PLAN_DEFAULT = [
+    { name: "Upper — Push", ex: [
+      { n: "Bench Press", sets: 4, rr:[6,8] },
+      { n: "Incline DB Press", sets: 3, rr:[8,10] },
+      { n: "Dips", sets: 3, rr:[8,12] },
+      { n: "Overhead DB Press", sets: 3, rr:[8,12] },
+      { n: "Lateral Raises", sets: 3, rr:[12,15] },
+      { n: "Plank", sets: 3, rr:[45,60] },
+    ]},
+    { name: "Lower — Quads", ex: [
+      { n: "Back Squat", sets: 4, rr:[6,8] },
+      { n: "Walking Lunge", sets: 3, rr:[10,10] },
+      { n: "Leg Press", sets: 3, rr:[10,12] },
+      { n: "Leg Extension", sets: 3, rr:[12,15] },
+      { n: "Calf Raise", sets: 3, rr:[12,20] },
+      { n: "Hanging Leg Raises", sets: 3, rr:[10,15] },
+    ]},
+    { name: "Upper — Pull", ex: [
+      { n: "Pull Ups", sets: 4, rr:[6,8] },
+      { n: "Barbell Row", sets: 3, rr:[8,10] },
+      { n: "Seated Cable Row", sets: 3, rr:[10,12] },
+      { n: "Lat Pulldown", sets: 3, rr:[8,12] },
+      { n: "Curl Bar", sets: 3, rr:[10,12] },
+      { n: "Face Pulls", sets: 3, rr:[12,15] },
+      { n: "Plank", sets: 3, rr:[45,60] },
+    ]},
+    { name: "Lower — Posterior Chain", ex: [
+      { n: "Romanian Deadlift", sets: 4, rr:[6,8] },
+      { n: "Hip Thrust", sets: 3, rr:[8,10] },
+      { n: "Leg Curl", sets: 3, rr:[12,15] },
+      { n: "Bulgarian Split Squat", sets: 3, rr:[10,12] },
+      { n: "Calf Raise", sets: 3, rr:[12,20] },
+      { n: "Hanging Leg Raises", sets: 3, rr:[10,15] },
+    ]},
+  ];
+
+  function savePlan(p){ localStorage.setItem(LS_PLAN, JSON.stringify(p)); }
+  function loadPlan(){ try{ const r=localStorage.getItem(LS_PLAN); return r? JSON.parse(r): structuredClone(PLAN_DEFAULT); }catch(e){ return structuredClone(PLAN_DEFAULT); } }
+
+  function saveLogs(o){ localStorage.setItem(LS_LOGS, JSON.stringify(o)); }
+  function loadLogs(){ try{ const r=localStorage.getItem(LS_LOGS); return r? JSON.parse(r): {}; }catch(e){ return {}; } }
+
+  function getISOWeek(date = new Date()){
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+    const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    return { year: d.getUTCFullYear(), week: weekNo };
+  }
+  const today = new Date();
+  let weekOffset = 0;
+  function weekKey(off=0){ const iso=getISOWeek(new Date(Date.now()+off*7*86400000)); return iso.year+"-W"+iso.week; }
+
+  function suggestionFrom(entries, rr){
+    if(!entries || !entries.length) return { cls:"neut", text:"Commence à mi-plage de reps." };
+    const last = entries[entries.length-1];
+    if(!last.reps) return { cls:"neut", text:"Renseigne tes répétitions pour une recommandation." };
+    const [mn,mx]=rr;
+    if(last.reps >= mx) return { cls:"ok", text:"+2,5 à 5% la séance suivante." };
+    if(last.reps < mn) return { cls:"bad", text:"Sous la plage : -5% ou conserve et vise + reps." };
+    return { cls:"warn", text:"Garde la charge, ajoute +1 rep/série." };
+  }
+
+  // ---- UI helpers
+  function el(html){ const d=document.createElement("div"); d.innerHTML=html.trim(); return d.firstChild; }
+  function clear(n){ while(n.firstChild) n.removeChild(n.firstChild); }
+
+  // ---- Tabs
+  const tabsEl = document.getElementById("tabs");
+  const views = {
+    program: document.getElementById("view-program"),
+    log: document.getElementById("view-log"),
+    advice: document.getElementById("view-advice"),
+    export: document.getElementById("view-export"),
+  };
+  let active = "program";
+
+  function renderTabs(){
+    clear(tabsEl);
+    TABS.forEach(([k,label])=>{
+      const b = el(`<button class="tab">${label}</button>`);
+      if(k===active) b.classList.add("active");
+      b.addEventListener("click",()=>{ active=k; update(); });
+      tabsEl.appendChild(b);
+    });
+  }
+
+  // ---- Program view
+  function renderProgram(){
+    const root = views.program; clear(root); root.style.display="block";
+    const plan = loadPlan();
+    root.appendChild(el(`<div class="row" style="justify-content:space-between"><b>Programme — 4 jours</b><span class="pill">Modifie juste les séries si besoin</span></div>`));
+    plan.forEach((day, dayIdx)=>{
+      const card = el(`<div class="card" style="background:#0b152b"><b>Jour ${dayIdx+1} — ${day.name}</b></div>`);
+      day.ex.forEach((ex, exIdx)=>{
+        const row = el(`<div class="tile" style="margin:6px 0">
+          <div><div><b>${ex.n}</b></div><div class="small">${ex.rr[0]}–${ex.rr[1]} reps</div></div>
+          <div class="row"><label>Sets</label><input type="number" value="${ex.sets}" min="1" style="width:90px"/></div>
+        </div>`);
+        const input = row.querySelector("input");
+        input.addEventListener("change",()=>{
+          const p = loadPlan(); p[dayIdx].ex[exIdx].sets = Math.max(1, Number(input.value)||1);
+          savePlan(p);
+          update(); // refresh volumes in advice if needed
+        });
+        card.appendChild(row);
+      });
+      root.appendChild(card);
+    });
+  }
+
+  // ---- Log view
+  function renderLog(){
+    const root = views.log; clear(root); root.style.display="block";
+    const plan = loadPlan();
+    const wk = weekKey(weekOffset);
+    const head = el(`<div><b>Journal — ${wk}</b></div>`);
+    const ctrls = el(`<div class="row" style="margin-top:6px">
+      <button class="btn">-1 semaine</button>
+      <button class="btn">Cette semaine</button>
+      <button class="btn">+1 semaine</button>
+    </div>`);
+    head.appendChild(ctrls);
+    root.appendChild(head);
+
+    const [btnPrev, btnCur, btnNext] = ctrls.querySelectorAll("button");
+    btnPrev.onclick = ()=>{ weekOffset -= 1; update(); };
+    btnCur.onclick = ()=>{ weekOffset = 0; update(); };
+    btnNext.onclick = ()=>{ weekOffset += 1; update(); };
+
+    // Display plan with set loggers
+    plan.forEach((day, dayIdx)=>{
+      const dayCard = el(`<div class="card" style="background:#0b152b"><b>${day.name}</b></div>`);
+      day.ex.forEach((ex)=>{
+        const exCard = el(`<div class="card" style="background:#0a1326">
+          <div class="row" style="justify-content:space-between">
+            <div><b>${ex.n}</b><div class="small">Cible ${ex.sets}×${ex.rr[0]}–${ex.rr[1]} reps</div></div>
+            <div class="small" id="adv"></div>
+          </div>
+          <div class="grid c4" style="margin-top:8px"></div>
+        </div>`);
+        const grid = exCard.querySelector(".grid");
+        for(let s=1; s<=ex.sets; s++){
+          const sb = el(`<div class="setbox">
+            <label>Poids (kg)</label><input type="number" step="0.5"/>
+            <label>Reps</label><input type="number"/>
+            <div class="row" style="margin-top:6px"><button class="btn primary">Ajouter</button></div>
+          </div>`);
+          const [wInput, rInput] = sb.querySelectorAll("input");
+          const addBtn = sb.querySelector("button");
+          addBtn.onclick = ()=>{
+            const w = Number(wInput.value)||0, r = Number(rInput.value)||0;
+            const logs = loadLogs(); const week = logs[wk] || {}; const d = week[dayIdx] || {}; const arr = d[ex.n] || [];
+            arr.push({ set:s, weight:w, reps:r, date:(new Date()).toISOString() });
+            d[ex.n] = arr; week[dayIdx] = d; logs[wk] = week; saveLogs(logs);
+            // update advice live
+            const {cls,text} = suggestionFrom(arr, ex.rr);
+            const adv = exCard.querySelector("#adv"); adv.textContent = text; adv.className = "small advice "+cls;
+          };
+          grid.appendChild(sb);
+        }
+        // initial advice
+        const logs = loadLogs(); const arr = (((logs[wk]||{})[dayIdx]||{})[ex.n])||[];
+        const {cls,text} = suggestionFrom(arr, ex.rr);
+        const adv = exCard.querySelector("#adv"); adv.textContent = text; adv.className = "small advice "+cls;
+        dayCard.appendChild(exCard);
+      });
+      root.appendChild(dayCard);
+    });
+
+    root.appendChild(el(`<div class="row"><button class="btn" id="reset">Réinitialiser toutes les données</button></div>`));
+    root.querySelector("#reset").onclick = ()=>{
+      if(confirm("Effacer toutes tes données (programme + logs) ?")){
+        localStorage.removeItem(LS_PLAN);
+        localStorage.removeItem(LS_LOGS);
+        update();
+      }
     };
-    const PLAN4=[
-      {name:"Upper — Push",ex:[["Bench Press",4],["Incline DB Press",3],["Dips",3],["Overhead DB Press",3],["Lateral Raises",3],["Plank",3]]},
-      {name:"Lower — Quads",ex:[["Back Squat",4],["Walking Lunge",3],["Leg Press",3],["Leg Extension",3],["Calf Raise",3],["Hanging Leg Raises",3]]},
-      {name:"Upper — Pull",ex:[["Pull Ups",4],["Barbell Row",3],["Seated Cable Row",3],["Lat Pulldown",3],["Curl Bar",3],["Face Pulls",3],["Plank",3]]},
-      {name:"Lower — Posterior Chain",ex:[["Romanian Deadlift",4],["Hip Thrust",3],["Leg Curl",3],["Bulgarian Split Squat",3],["Calf Raise",3],["Hanging Leg Raises",3]]},
-    ];
-    const defaultTargets={"Pecs":[12,20],"Delts_Ant":[10,16],"Delts_Lat":[10,20],"Dos":[12,20],"Biceps":[8,16],"Triceps":[8,16],"Quads":[12,20],"Ischios":[10,18],"Fessiers":[10,18],"Mollets":[8,20],"Abdos":[8,20]};
+  }
 
-    function volumeFrom(plan){const v={};muscles.forEach(m=>v[m]=0); plan.forEach(d=>d.ex.forEach(([name,sets])=>{const def=EXER[name]; if(!def) return; Object.entries(def.m).forEach(([m,w])=>v[m]+=sets*w)})); Object.keys(v).forEach(k=>v[k]=round(v[k],1)); return v}
-    function suggestion(entries,[mn,mx]){ if(!entries||entries.length===0) return {msg:"Commence à mi-plage.",delta:0}; const last=entries[entries.length-1]; if(!last?.reps) return {msg:"Entre tes reps pour suggérer la charge.",delta:0}; if(last.reps>=mx) return {msg:"+2,5 à 5% semaine pro.",delta:+0.03}; if(last.reps<mn) return {msg:"Sous la plage : -5% ou vise la borne basse.",delta:-0.05}; return {msg:"Garde la charge, ajoute +1 rep.",delta:0}}
+  // ---- Advice view
+  function renderAdvice(){
+    const root = views.advice; clear(root); root.style.display="block";
+    const plan = loadPlan(); const logs = loadLogs();
+    const wk = weekKey(weekOffset);
+    root.appendChild(el(`<div class="row" style="justify-content:space-between"><b>Conseils — ${wk}</b><span class="pill">Basé sur ta dernière série saisie</span></div>`));
 
-    function stepLengthCm(h){return round(0.415*(h||175),0)}; function paceToMET(k){if(k<=3)return 2.3;if(k<=4)return 2.9;if(k<=5)return 3.5;if(k<=6)return 4.3;if(k<=7)return 5;return 7}
-    function kcalPerStepEstimate(profile,paceKmh){const met=paceToMET(paceKmh||4.5);const kg=profile.weightKg||80;const stepLen=stepLengthCm(profile.heightCm||180)/100;const stepsPerMin=(paceKmh||4.5)*1000/60/stepLen;const kcalPerMin=met*3.5*kg/200;return kcalPerMin/stepsPerMin}
+    plan.forEach((day, dayIdx)=>{
+      const dayCard = el(`<div class="card" style="background:#0b152b"><b>${day.name}</b></div>`);
+      day.ex.forEach(ex=>{
+        const arr = (((logs[wk]||{})[dayIdx]||{})[ex.n])||[];
+        const {cls,text} = suggestionFrom(arr, ex.rr);
+        const row = el(`<div class="tile"><span>${ex.n}</span><span class="advice ${cls}">${text}</span></div>`);
+        dayCard.appendChild(row);
+      });
+      root.appendChild(dayCard);
+    });
+  }
 
-    async function scanBarcode(videoEl,onResult,onError){
-      try{
-        if(!(window.ZXing && window.ZXing.BrowserMultiFormatReader)){ throw new Error("ZXing non chargé"); }
-        const cr=new ZXing.BrowserMultiFormatReader();
-        const devices=await cr.listVideoInputDevices();const deviceId=devices[0]?.deviceId;
-        await cr.decodeOnceFromVideoDevice(deviceId,videoEl,(res,err)=>{ if(res){onResult(res.text);cr.reset()} if(err && !(err instanceof ZXing.NotFoundException)){onError?.(String(err))}})
-      }catch(e){onError?.(String(e))}
-    }
-    async function fetchOFF(barcode){
-      const url=`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`;
-      try{const r=await fetch(url);const j=await r.json();if(j&&j.product){const p=j.product;return {name:p.product_name||'Produit OFF',kcalPer100:+p.nutriments['energy-kcal_100g']||null,proteinPer100:+p.nutriments['proteins_100g']||0,carbsPer100:+p.nutriments['carbohydrates_100g']||0,fatPer100:+p.nutriments['fat_100g']||0}}}catch(e){}
-      return null
-    }
+  // ---- Export view
+  function renderExport(){
+    const root = views.export; clear(root); root.style.display="block";
+    root.appendChild(el(`<b>Exporter mes données (CSV)</b>`));
+    const btns = el(`<div class="row" style="margin-top:6px">
+      <button class="btn primary">Télécharger CSV</button>
+    </div>`);
+    btns.querySelector("button").onclick = ()=>{
+      const logs = loadLogs();
+      const rows = [["Week","Day","Exercise","Set","Weight","Reps","Date"]];
+      Object.entries(logs).forEach(([wk, days])=>{
+        Object.entries(days).forEach(([dIdx, exs])=>{
+          Object.entries(exs).forEach(([name, sets])=>{
+            sets.forEach(s=> rows.push([wk, Number(dIdx)+1, name, s.set, s.weight, s.reps, s.date]));
+          });
+        });
+      });
+      const csv = rows.map(r=>r.join(",")).join("\n");
+      const blob = new Blob([csv], {type:"text/csv;charset=utf-8;"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = "musclepilot_mini_logs.csv"; a.click(); URL.revokeObjectURL(url);
+    };
+    root.appendChild(btns);
+  }
 
-    function LineChart({data,yKey="y"}){
-      const w=800,h=200,pad=24; const xs=data.map((_,i)=>i); const ys=data.map(d=>d[yKey]||0);
-      const minY=Math.min(...ys,0),maxY=Math.max(...ys,1);
-      const sx=i=> pad + (i*(w-2*pad))/Math.max(1,(xs.length-1||1));
-      const sy=y=> h-pad - ((y-minY)*(h-2*pad))/Math.max(1,(maxY-minY||1));
-      const pts=data.map((d,i)=> `${sx(i)},${sy(d[yKey])}`).join(" ");
-      return <div className="chart"><svg viewBox={`0 0 ${w} ${h}`}>
-        <defs><linearGradient id="g" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#73e0ff88"/><stop offset="100%" stopColor="#73e0ff08"/></linearGradient></defs>
-        <rect x="0" y="0" width={w} height={h} fill="#0c162a"/>
-        {[0.25,0.5,0.75].map((t,i)=>(<line key={i} x1={pad} x2={w-pad} y1={pad+t*(h-2*pad)} y2={pad+t*(h-2*pad)} stroke="#193052"/>))}
-        {data.length>1 && <polyline points={pts} fill="none" stroke="#73e0ff" strokeWidth="2"/>}
-        {data.length>1 && <polygon points={`${pts} ${w-pad},${h-pad} ${pad},${h-pad}`} fill="url(#g)"/>}
-      </svg></div>;
-    }
+  function hideAll(){ Object.values(views).forEach(v=> v.style.display="none"); }
 
-    function Tabs({active,onSet}){
-      const items=[["profile","Profil"],["plan","Programme"],["log","Séances"],["analytics","Analyse"],["targets","Cibles"],["cal","Calories"],["sync","Sync"],["coach","Coaching"],["export","Export"]];
-      return <div className="tabs">{items.map(([k,lab])=>(<button key={k} className={"tab"+(active===k?" active":"")} onClick={()=>onSet(k)}>{lab}</button>))}</div>
-    }
+  function update(){
+    renderTabs();
+    hideAll();
+    if(active==="program") renderProgram();
+    if(active==="log") renderLog();
+    if(active==="advice") renderAdvice();
+    if(active==="export") renderExport();
+  }
 
-    function App(){
-      const [profile,setProfile]=useLocal("mp_fusion_profile", defaultProfile);
-      const [plan,setPlan]=useLocal("mp_fusion_plan", PLAN4);
-      const [logs,setLogs]=useLocal("mp_fusion_logs", {});
-      const [targets,setTargets]=useLocal("mp_fusion_targets", defaultTargets);
-      const [weekOff,setWeekOff]=useLocal("mp_fusion_weekOff", 0);
-      const [tab,setTab]=useLocal("mp_fusion_tab", "cal");
-
-      const [cfg,setCfg]=useLocal("mp_fusion_cfg", { paceKmh:4.8, kcalPerStep:null });
-      const [days,setDays]=useLocal("mp_fusion_days", {});
-      const [coach,setCoach]=useLocal("mp_fusion_coach", { enabled:true, lowThresh:-200, highThresh:150 });
-      const [sync,setSync]=useLocal("mp_fusion_sync", { mode:"none", supabaseUrl:"", supabaseAnon:"", table:"musclepilot_logs", sheetsWebhook:"" });
-
-      const base=macrosFrom(profile);
-      const iso=getISOWeek(); const currentWeek=`${iso.year}-W${iso.week+weekOff}`;
-      const volume=useMemo(()=>volumeFrom(plan),[plan]);
-
-      const today=dayKey(); const day=days[today]||{foods:[],steps:0};
-      const kcalStep = cfg.kcalPerStep ?? kcalPerStepEstimate(profile,cfg.paceKmh);
-      const stepsKcal = Math.round((day.steps||0)*kcalStep);
-      const dynTarget = Math.round(base.target + stepsKcal);
-      const totals = day.foods.reduce((a,f)=>({kcal:a.kcal+(+f.kcal||0),p:a.p+(+f.protein||0),c:a.c+(+f.carbs||0),f:a.f+(+f.fat||0)}),{kcal:0,p:0,c:0,f:0});
-      const remaining = Math.round(dynTarget - totals.kcal);
-
-      function addLog(dayIdx, name, setIndex, weight, reps){
-        setLogs(prev=>{
-          const w=prev[currentWeek]||{}; const d=w[dayIdx]||{}; const arr=d[name]||[];
-          return {...prev,[currentWeek]:{...w,[dayIdx]:{...d,[name]:[...arr,{set:setIndex,weight,reps}]}}}
-        })
-      }
-      function entriesForWeek(weekKey,name){
-        const w=logs[weekKey]||{}; const days=Object.values(w); const arr=[]; days.forEach(d=>{(d[name]||[]).forEach(s=>arr.push({...s}))}); return arr;
-      }
-      const [selEx,setSelEx]=useState("Bench Press");
-      const e1Data=useMemo(()=>{
-        const keys=Object.keys(logs).sort(); const arr=[];
-        keys.forEach(k=>{ let best=0; const w=logs[k]||{}; Object.values(w).forEach(d=>{ (d[selEx]||[]).forEach(s=>{ const est=epley1RM(s.weight,s.reps)||0; if(est>best) best=est; })}); if(best>0) arr.push({y:round(best,1)}) })
-        return arr;
-      },[logs,selEx]);
-
-      useEffect(()=>{ if(!coach.enabled) return; try{ if("Notification" in window){ if(Notification.permission==="default"){ Notification.requestPermission() } }
-        if(remaining<=coach.lowThresh){ if(navigator.vibrate) navigator.vibrate([12,30,12]); }
-        if(remaining>=coach.highThresh){ if(navigator.vibrate) navigator.vibrate([12,12,12]); }
-      }catch{}
-      },[remaining,coach.enabled]);
-
-      function saveDay(u){ setDays(prev=>({...prev,[today]:{...(prev[today]||{}),...u}})) }
-      function updateSets(dayIdx, exIdx, newSets){ setPlan(prev=>prev.map((d,i)=> i!==dayIdx? d: ({...d, ex:d.ex.map((e,j)=> j!==exIdx? e: [e[0], Math.max(1,newSets)])})) ) }
-
-      return (<div className="wrap">
-        <div className="header"><div className="title">MusclePilot — Dark Knight FUSION</div><div className="badge">🦇 Gotham Tech · {today}</div></div>
-        <Tabs active={tab} onSet={setTab} />
-
-        {tab==="profile" && (<div className="card">
-          <b>Profil & Macros</b>
-          <div className="grid cols-4" style={{marginTop:8}}>
-            <div><label>Taille (cm)</label><input type="number" value={profile.heightCm} onChange={e=>setProfile({...profile,heightCm:+e.target.value})}/></div>
-            <div><label>Poids (kg)</label><input type="number" step="0.1" value={profile.weightKg} onChange={e=>setProfile({...profile,weightKg:+e.target.value})}/></div>
-            <div><label>Âge</label><input type="number" value={profile.age} onChange={e=>setProfile({...profile,age:+e.target.value})}/></div>
-            <div><label>Sexe</label><select value={profile.sex} onChange={e=>setProfile({...profile,sex:e.target.value})}><option value="M">Homme</option><option value="F">Femme</option></select></div>
-            <div><label>Objectif</label><select value={profile.goal} onChange={e=>setProfile({...profile,goal:e.target.value})}><option value="recomp">Recomposition</option><option value="cut">Sèche</option><option value="bulk">Prise de masse</option></select></div>
-            <div><label>Déficit (%)</label><input type="number" value={Math.round((profile.deficitPct||0.10)*100)} onChange={e=>setProfile({...profile,deficitPct:(+e.target.value||0)/100})}/></div>
-            <div><label>Activité (facteur)</label><select value={String(profile.activityFactor)} onChange={e=>setProfile({...profile,activityFactor:+e.target.value})}>{[1.2,1.375,1.55,1.6,1.725,1.9].map(v=>(<option key={v} value={v}>{v}</option>))}</select></div>
-            <div className="kpi"><span className="pill">Cible kcal</span><b>{macrosFrom(profile).target}</b></div>
-            <div className="kpi"><span className="pill">Prot (g)</span><b>{macrosFrom(profile).proteinG}</b></div>
-            <div className="kpi"><span className="pill">Lip (g)</span><b>{macrosFrom(profile).fatG}</b></div>
-            <div className="kpi"><span className="pill">Gluc (g)</span><b>{macrosFrom(profile).carbsG}</b></div>
-          </div>
-        </div>)}
-
-        {tab==="plan" && (<div className="card">
-          <b>Programme — {profile.sessionsPerWeek} séances/sem.</b>
-          <div className="hr"></div>
-          <div className="grid cols-2">
-            {plan.map((d,dayIdx)=>(
-              <div key={dayIdx} className="card" style={{background:"#0b152b"}}>
-                <div className="row" style={{justifyContent:"space-between"}}>
-                  <b>Jour {dayIdx+1} — {d.name}</b><span className="pill">Batman Split</span>
-                </div>
-                <div>
-                  {d.ex.map(([name,sets],exIdx)=>(
-                    <div key={exIdx} className="tile" style={{margin:"6px 0"}}>
-                      <div>
-                        <div><b>{name}</b></div>
-                        <div className="small">{(EXER[name]?.rr||[8,12]).join("–")} reps</div>
-                      </div>
-                      <div className="row">
-                        <label>Sets</label>
-                        <input style={{width:"90px"}} type="number" min="1" value={sets} onChange={e=>updateSets(dayIdx,exIdx, +e.target.value)}/>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="hr"></div>
-          <b>Volume hebdomadaire (sets effectifs)</b>
-          <div className="grid cols-4" style={{marginTop:8}}>
-            {muscles.map(m=>{
-              const val=(useMemo(()=>volumeFrom(plan),[plan]))[m]||0; const [lo,hi]=useMemo(()=> (defaultTargets[m]||[0,0]),[]);
-              const cls = val<lo? "bad": (val>hi? "warn":"good");
-              return (<div key={m} className="tile"><span>{m}</span><b className={cls}>{val}</b></div>)
-            })}
-          </div>
-        </div>)}
-
-        {tab==="log" && (<div className="card">
-          <b>Journal — semaine {getISOWeek().week + weekOff}</b>
-          <div className="row" style={{marginTop:"6px"}}>
-            <button className="btn" onClick={()=>setWeekOff(weekOff-1)}>-1 semaine</button>
-            <button className="btn" onClick={()=>setWeekOff(0)}>Cette semaine</button>
-            <button className="btn" onClick={()=>setWeekOff(weekOff+1)}>+1 semaine</button>
-          </div>
-          <div className="hr"></div>
-          {plan.map((d,dayIdx)=>(
-            <div key={dayIdx} className="card" style={{background:"#0b152b"}}>
-              <b>{d.name}</b>
-              {d.ex.map(([name,sets],exIdx)=>{
-                const rr=EXER[name]?.rr||[8,12]; 
-                const entries=(Object.values(logs[getISOWeek().week + weekOff]||{}).flatMap(x=>(x[name]||[])));
-                const sugg=suggestion(entries,rr);
-                return (<div key={exIdx} className="card" style={{background:"#0a1326"}}>
-                  <div className="row" style={{justifyContent:"space-between"}}>
-                    <div><b>{name}</b><div className="small">Cible {sets}×{rr[0]}–{rr[1]} reps</div></div>
-                    <div className="small">{sugg.msg}</div>
-                  </div>
-                  <div className="grid cols-4" style={{marginTop:"8px"}}>
-                    {Array.from({length:sets}).map((_,sIdx)=> <SetLogger key={sIdx} onAdd={(w,r)=>addLog(dayIdx,name,sIdx+1,w,r)} />)}
-                  </div>
-                </div>)
-              })}
-            </div>
-          ))}
-        </div>)}
-
-        {tab==="analytics" && (<div className="card">
-          <b>Analyse — e1RM</b>
-          <div className="row" style={{marginTop:"8px"}}>
-            <label>Exercice</label>
-            <select value={selEx} onChange={e=>setSelEx(e.target.value)}>
-              {Object.keys(EXER).map(k=>(<option key={k} value={k}>{k}</option>))}
-            </select>
-          </div>
-          <div style={{marginTop:"8px"}}><LineChart data={[]} /></div>
-          <div className="small"><span className="pill">estimation Epley</span></div>
-        </div>)}
-
-        {tab==="targets" && (<div className="card">
-          <b>Cibles de volume (sets/semaine)</b>
-          <div className="grid cols-3" style={{marginTop:"8px"}}>
-            {muscles.map(m=>{
-              const [lo,hi]=defaultTargets[m]||[0,0];
-              return (<div key={m} className="tile">
-                <div style={{minWidth:"120px"}}>{m}</div>
-                <div className="row"><input type="number" style={{width:"80px"}} value={lo} onChange={()=>{}}/>
-                  <input type="number" style={{width:"80px"}} value={hi} onChange={()=>{}}/></div>
-              </div>)
-            })}
-          </div>
-        </div>)}
-
-        {tab==="cal" && (<div className="card">
-          <b>Calories & Pas</b>
-          <div className="grid cols-3" style={{marginTop:"8px"}}>
-            <div className="kpi"><span className="pill">Cible repos</span><b>{macrosFrom(profile).target} kcal</b></div>
-            <div className="kpi"><span className="pill">kcal / pas (estim.)</span><b>{round((()=>{const met=3.5;const kg=profile.weightKg||80;const stepLen=(0.415*(profile.heightCm||180))/100;const stepsPerMin=(4.5*1000/60)/stepLen;const kcalPerMin=met*3.5*kg/200;return kcalPerMin/stepsPerMin})(),3)}</b></div>
-            <div className="kpi"><span className="pill">kcal des pas</span><b>0 kcal</b></div>
-          </div>
-          <div className="grid cols-3" style={{marginTop:"8px"}}>
-            <div><label>Pas du jour</label><input type="number" value={0} onChange={()=>{}}/></div>
-            <div><label>Allure (km/h)</label><input type="number" step="0.1" value={4.8} onChange={()=>{}}/></div>
-            <div className="kpi"><span className="pill">Cible ajustée</span><b>{macrosFrom(profile).target} kcal</b></div>
-          </div>
-          <div className="card" style={{marginTop:"12px"}}>
-            <b>Ajouter un aliment</b>
-            <div className="small">Formulaire dispo dans la version interactive (les entrées s’enregistreront en local).</div>
-          </div>
-        </div>)}
-
-        {tab==="sync" && (<div className="card">
-          <b>Synchronisation</b>
-          <div className="small">Renseigne Supabase ou un webhook Google Sheets pour sauvegarder en ligne.</div>
-        </div>)}
-
-        {tab==="coach" && (<div className="card">
-          <b>Mode coaching</b>
-          <div className="small">Active les alertes selon ton écart à la cible.</div>
-        </div>)}
-
-        {tab==="export" && (<div className="card">
-          <b>Export & Import</b>
-          <div className="small">Disponible une fois des données saisies.</div>
-        </div>)}
-      </div>);
-    }
-
-    function SetLogger(){ return (<div className="setbox"><label>Poids (kg)</label><input type="number"/><label>Reps</label><input type="number"/><div className="row" style={{marginTop:"6px"}}><button className="btn primary">Ajouter</button></div></div>) }
-
-    const root=ReactDOM.createRoot(document.getElementById('root')); root.render(<App/>);
-  </script>
+  // init
+  update();
+})();
+</script>
 </body>
 </html>
