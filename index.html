@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>MusclePilot — Dark Knight v2 (MAX)</title>
+<link rel="manifest" href="manifest.json"/><meta name="theme-color" content="#00a8ff"/>
+<style>
+:root{--bg:#0a0e18;--panel:#0b1325;--border:#12203a;--muted:#7a8aa6;--white:#e6eefc;--blue:#00a8ff;--yellow:#ffc700;--danger:#ff4d4d;--ok:#1be48b}
+*{box-sizing:border-box} body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:
+radial-gradient(1000px 600px at 70% 10%, rgba(0,168,255,.10), rgba(0,0,0,0)),
+radial-gradient(800px 500px at 20% 80%, rgba(255,199,0,.08), rgba(0,0,0,0)),var(--bg);color:var(--white)}
+.wrap{max-width:1100px;margin:0 auto;padding:16px}
+.header{display:flex;align-items:center;justify-content:space-between;margin:8px 0 16px}
+.title{font-weight:900;font-size:22px;background:linear-gradient(90deg,var(--blue),#73e0ff,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}.tab{padding:10px 14px;border:1px solid var(--border);background:rgba(255,255,255,.02);border-radius:12px;color:var(--white);cursor:pointer}
+.tab.active{outline:1px solid #1f2d4a;background:linear-gradient(180deg,#0f1b33,#0b1325)}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 0 0 1px rgba(0,168,255,.04) inset}
+.grid{display:grid;gap:12px}@media(min-width:760px){.grid.cols-2{grid-template-columns:1fr 1fr}.grid.cols-3{grid-template-columns:1fr 1fr 1fr}}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:4px} input,select,textarea{width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);background:#091020;color:var(--white)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.btn{padding:10px 14px;border:1px solid var(--border);background:#0e1830;color:#fff;border-radius:10px;cursor:pointer}
+.btn.primary{background:linear-gradient(90deg,var(--blue),#73e0ff);color:#051024;border-color:#167fb1}
+.tile{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--border);border-radius:14px;padding:10px;background:#0c162a}
+.hint{font-size:12px;color:var(--muted);margin-top:4px}
+.splash{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:
+radial-gradient(600px 350px at 50% 60%, rgba(0,168,255,.16), rgba(0,0,0,0)),linear-gradient(180deg,var(--bg) 0%, #0b1220 100%);z-index:50;animation:fadeOut 1.2s ease .5s forwards}
+.logo{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.06);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.15);padding:12px 16px;border-radius:16px}
+.logo b{background:linear-gradient(90deg,var(--blue),#73e0ff,var(--yellow));-webkit-background-clip:text;background-clip:text;color:transparent;font-size:18px}
+@keyframes fadeOut{to{opacity:0;visibility:hidden}}
+.small{font-size:12px;color:var(--muted)}
+</style>
+<script>if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js'));}</script>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@zxing/library@latest"></script>
+</head>
+<body>
+<div id="root"></div>
+<div id="splash" class="splash">
+  <div class="logo">
+    <img src="icons/icon-192x192.png" width="28" height="28" alt="logo"/>
+    <div><b>MusclePilot</b><div class="small" style="margin-top:-2px">Dark Knight v2</div></div>
+    <div style="font-size:12px;margin-left:8px;color:#00a8ff">Booting… 🦇</div>
+  </div>
+</div>
+
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+const round=(n,d=0)=>Number(n.toFixed(d));
+function useLocal(key,init){const [v,setV]=useState(()=>{try{const raw=localStorage.getItem(key);return raw?JSON.parse(raw):init}catch{return init}});useEffect(()=>{try{localStorage.setItem(key,JSON.stringify(v))}catch{}},[key,v]);return [v,setV]}
+const dayKey=(d=new Date())=>d.toISOString().slice(0,10);
+
+const defaultProfile = { sex:'M', age:31, heightCm:184, weightKg:79.2, sessionsPerWeek:4, activityFactor:1.6, goal:'recomp', deficitPct:0.10 };
+const BMR = p => (10*p.weightKg + 6.25*p.heightCm - 5*p.age + (p.sex==='F'?-161:5));
+function macro(p){const b=BMR(p),tdee=b*p.activityFactor;let target=tdee; if(p.goal==='recomp')target=tdee*(1-(p.deficitPct??0.10)); if(p.goal==='cut')target=tdee*0.85; if(p.goal==='bulk')target=tdee*1.08; return {bmr:round(b),tdee:round(tdee),target:round(target)}}
+
+function stepLengthCm(h){return round(0.415*(h||175),0)}; function paceToMET(kmh){if(kmh<=3)return 2.3;if(kmh<=4)return 2.9;if(kmh<=5)return 3.5;if(kmh<=6)return 4.3;if(kmh<=7)return 5;return 7}
+function kcalPerStepEstimate(profile,paceKmh){const met=paceToMET(paceKmh||4.5);const kg=profile.weightKg||80;const stepLen=stepLengthCm(profile.heightCm||180)/100;const stepsPerMin=(paceKmh||4.5)*1000/60/stepLen;const kcalPerMin=met*3.5*kg/200;return kcalPerMin/stepsPerMin}
+
+async function scanBarcode(videoEl,onResult,onError){try{const cr=new ZXing.BrowserMultiFormatReader();const devices=await cr.listVideoInputDevices();const deviceId=devices[0]?.deviceId;await cr.decodeOnceFromVideoDevice(deviceId,videoEl,(res,err)=>{if(res){onResult(res.text);cr.reset()} if(err && !(err instanceof ZXing.NotFoundException)){onError?.(String(err))}})}catch(e){onError?.(String(e))}}
+async function fetchOFF(barcode){const url=`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`;try{const r=await fetch(url);const j=await r.json();if(j&&j.product){const p=j.product;return {name:p.product_name||'Produit OFF',kcalPer100:+p.nutriments['energy-kcal_100g']||null,proteinPer100:+p.nutriments['proteins_100g']||0,carbsPer100:+p.nutriments['carbohydrates_100g']||0,fatPer100:+p.nutriments['fat_100g']||0}}}catch(e){}return null}
+
+function Tabs({active,onSet}){const items=[["tracker","Calories & Pas"],["profile","Profil"],["sync","Sync"],["coach","Coaching"],["export","Export"]];return <div className="tabs">{items.map(([k,lab])=>(<button key={k} className={"tab"+(active===k?" active":"")} onClick={()=>onSet(k)}>{lab}</button>))}</div>}
+
+function App(){
+  const [tab,setTab]=useState("tracker");
+  const [profile,setProfile]=useLocal("mp_v2_prof", defaultProfile);
+  const base=macro(profile);
+  const [cfg,setCfg]=useLocal("mp_v2_cfg", { paceKmh:4.8, kcalPerStep:null });
+  const [days,setDays]=useLocal("mp_v2_days", {});
+  const [coach,setCoach]=useLocal("mp_v2_coach", { enabled:true, lowThresh:-200, highThresh:150 });
+  const [sync,setSync]=useLocal("mp_v2_sync", { mode:"none", supabaseUrl:"", supabaseAnon:"", table:"musclepilot_logs", sheetsWebhook:"" });
+
+  useEffect(()=>{ setTimeout(()=>{const el=document.getElementById("splash"); if(navigator.vibrate)try{navigator.vibrate(15)}catch{}; if(el)el.style.display="none"}, 900) },[]);
+
+  const today = dayKey(); const day = days[today] || { foods:[], steps:0 };
+  const estKcalPerStep = cfg.kcalPerStep ?? kcalPerStepEstimate(profile, cfg.paceKmh);
+  const stepsKcal = Math.round((day.steps||0) * estKcalPerStep);
+  const dynamicTarget = Math.round(base.target + stepsKcal);
+  const totals = day.foods.reduce((a,f)=>({ kcal:a.kcal+(+f.kcal||0), p:a.p+(+f.protein||0), c:a.c+(+f.carbs||0), f:a.f+(+f.fat||0) }), {kcal:0,p:0,c:0,f:0});
+  const remaining = Math.round(dynamicTarget - totals.kcal);
+
+  function saveDay(u){ setDays(prev => ({...prev, [today]: { ...(prev[today]||{}), ...u }})); }
+  function addFood(food){ saveDay({ foods: [ ...(day.foods||[]), {...food, id: Date.now()} ] }); }
+  function removeFood(id){ saveDay({ foods: (day.foods||[]).filter(f=>f.id!==id) }); }
+
+  useEffect(()=>{ if(!coach.enabled) return;
+    if(remaining <= coach.lowThresh) notify("⚠️ Sous la cible", `Il te manque ${Math.abs(remaining)} kcal.`);
+    else if(remaining >= coach.highThresh) notify("🔔 Au-dessus", `Tu dépasses de ${remaining} kcal.`);
+  }, [remaining, coach.enabled]);
+
+  function notify(title, body){ try{ if(navigator.vibrate) navigator.vibrate([10,40,10]);
+    if("Notification" in window){ if(Notification.permission==="granted"){new Notification(title,{body,icon:"icons/icon-192x192.png"})}else if(Notification.permission!=="denied"){Notification.requestPermission()}}}catch{} }
+
+  async function supabasePush(payload){
+    const {supabaseUrl, supabaseAnon, table} = sync;
+    const res = await fetch(`${supabaseUrl}/rest/v1/${table}`,{
+      method:"POST",
+      headers:{"Content-Type":"application/json","apikey":supabaseAnon,"Authorization":`Bearer ${supabaseAnon}`,"Prefer":"resolution=merge-duplicates"},
+      body: JSON.stringify([{ id:"singleton", data: payload }])
+    });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+  }
+  async function supabasePull(){
+    const {supabaseUrl, supabaseAnon, table} = sync;
+    const res = await fetch(`${supabaseUrl}/rest/v1/${table}?id=eq.singleton&select=*`, { headers:{"apikey":supabaseAnon,"Authorization":`Bearer ${supabaseAnon}`} });
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const arr = await res.json();
+    if(Array.isArray(arr) && arr[0]?.data) return arr[0].data;
+    return null;
+  }
+
+  async function doPush(){
+    if(sync.mode!=="supabase" && sync.mode!=="sheets") return alert("Choisis un mode de synchro.");
+    const payload = { profile, cfg, coach, days };
+    try{
+      if(sync.mode==="supabase"){ await supabasePush(payload); alert("Supabase: synchronisation envoyée."); }
+      else if(sync.mode==="sheets"){ if(!sync.sheetsWebhook) return alert("Webhook Google Apps Script manquant.");
+        const r = await fetch(sync.sheetsWebhook, { method:"POST", body: JSON.stringify(payload) });
+        if(!r.ok) throw new Error("HTTP "+r.status); alert("Sheets: synchronisation envoyée."); }
+    }catch(e){ alert("Erreur de synchronisation: "+e.message); }
+  }
+  async function doPull(){
+    if(sync.mode!=="supabase") return alert("Le Pull nécessite Supabase.");
+    try{ const data = await supabasePull(); if(!data) return alert("Aucune donnée distante.");
+      if(confirm("Fusionner (OK) ou Remplacer (Annuler) ?")){
+        setProfile(data.profile||profile); setCfg(data.cfg||cfg); setCoach(data.coach||coach); setDays({...days, ...(data.days||{})});
+      } else {
+        setProfile(data.profile||profile); setCfg(data.cfg||cfg); setCoach(data.coach||coach); setDays(data.days||{});
+      }
+      alert("Récupération terminée.");
+    }catch(e){ alert("Erreur Pull: "+e.message); }
+  }
+
+  useEffect(()=>{ const id=setInterval(()=>{ const now=new Date(); if(now.getHours()===23 && now.getMinutes()===59) doPush(); }, 60*1000); return ()=>clearInterval(id); }, [sync, profile, cfg, coach, days]);
+
+  return (<div className="wrap">
+    <div className="header"><div className="title">MusclePilot — Dark Knight v2 (MAX)</div><div className="tile"><span className="small">Jour {today}</span><span className="small" style={{marginLeft:8}}>🦇 Gotham Tech</span></div></div>
+    <Tabs active={tab} onSet={setTab} />
+
+    {tab==="tracker" && (<div className="card">
+      <b>Pas & Cible dynamique</b>
+      <div className="grid cols-3">
+        <div className="tile"><span className="small">Pas du jour</span><div className="row"><input type="number" value={day.steps||0} onChange={e=>saveDay({steps:+e.target.value})}/></div></div>
+        <div className="tile"><span className="small">Allure (km/h)</span><div className="row"><input type="number" step="0.1" value={cfg.paceKmh} onChange={e=>setCfg({...cfg,paceKmh:+e.target.value})}/></div><div className="hint">Impacte l’estimation kcal/pas.</div></div>
+        <div className="tile"><span className="small">kcal / pas (estimé)</span><b>{round(estKcalPerStep,3)}</b></div>
+      </div>
+      <div className="grid cols-3" style="margin-top:12px">
+        <div className="tile"><span className="small">Cible repos</span><b>{base.target} kcal</b></div>
+        <div className="tile"><span className="small">kcal des pas</span><b>{stepsKcal} kcal</b></div>
+        <div className="tile"><span className="small">Cible ajustée</span><b>{dynamicTarget} kcal</b></div>
+      </div>
+
+      <div className="card" style="margin-top:12px">
+        <b>Ajouter un aliment</b>
+        <FoodForm onAdd={addFood} />
+        <div className="grid cols-2" style="margin-top:12px">
+          <BarcodeBlock onAdd={addFood} />
+          <PhotoBlock onAdd={addFood} />
+        </div>
+      </div>
+
+      <div className="card">
+        <b>Aliments du jour</b>
+        {(day.foods||[]).length===0 && <div className="hint">Aucun aliment ajouté.</div>}
+        {(day.foods||[]).map(f=>(
+          <div key={f.id} className="tile" style="margin:6px 0">
+            <div>
+              <div><b>{f.name||"Aliment"}</b> {f.grams? <span className="small">({f.grams} g)</span>: null}</div>
+              <div className="small">{Math.round(f.kcal)} kcal · P {f.protein} g · G {f.carbs} g · L {f.fat} g {f.barcode? `· code ${f.barcode}`: ""}</div>
+            </div>
+            <div className="row">
+              {f.photoDataUrl? <a className="btn" href={f.photoDataUrl} target="_blank" rel="noreferrer">Photo</a>: null}
+              <button className="btn" onClick={()=>removeFood(f.id)}>Supprimer</button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid cols-3" style="margin-top:12px">
+        <div className="tile"><span className="small">Total kcal</span><b>{Math.round((day.foods||[]).reduce((s,f)=>s+(+f.kcal||0),0))}</b></div>
+        <div className="tile"><span className="small">Reste</span><b style="color:${remaining<0?'var(--danger)':'var(--ok)'}">{remaining}</b></div>
+        <div className="tile"><span className="small">BMR/TDEE</span><b>{base.bmr} / {base.tdee}</b></div>
+      </div>
+    </div>)}
+
+    {tab==="profile" && (<div className="card">
+      <b>Profil</b>
+      <div className="grid cols-2">
+        <div><label>Taille (cm)</label><input type="number" value={profile.heightCm} onChange={e=>setProfile({...profile,heightCm:+e.target.value})}/></div>
+        <div><label>Poids (kg)</label><input type="number" step="0.1" value={profile.weightKg} onChange={e=>setProfile({...profile,weightKg:+e.target.value})}/></div>
+        <div><label>Âge</label><input type="number" value={profile.age} onChange={e=>setProfile({...profile,age:+e.target.value})}/></div>
+        <div><label>Sexe</label><select value={profile.sex} onChange={e=>setProfile({...profile,sex:e.target.value})}><option value="M">Homme</option><option value="F">Femme</option></select></div>
+        <div><label>Objectif</label><select value={profile.goal} onChange={e=>setProfile({...profile,goal:e.target.value})}><option value="recomp">Recomposition</option><option value="cut">Sèche</option><option value="bulk">Prise de masse</option></select></div>
+        <div><label>Déficit (%)</label><input type="number" value={Math.round((profile.deficitPct||0.10)*100)} onChange={e=>setProfile({...profile,deficitPct:(+e.target.value||0)/100})}/></div>
+        <div><label>Activité (facteur)</label><select value={String(profile.activityFactor)} onChange={e=>setProfile({...profile,activityFactor:+e.target.value})}>{[1.2,1.375,1.55,1.6,1.725,1.9].map(v=>(<option key={v} value={v}>{v}</option>))}</select></div>
+      </div>
+    </div>)}
+
+    {tab==="sync" && (<div className="card">
+      <b>Synchronisation (multi-appareils)</b>
+      <div className="row">
+        <label>Mode</label>
+        <select value={sync.mode} onChange={e=>setSync({...sync,mode:e.target.value})}>
+          <option value="none">Désactivé</option>
+          <option value="supabase">Supabase</option>
+          <option value="sheets">Google Sheets (webhook)</option>
+        </select>
+        <button className="btn primary" onClick={()=>doPush()}>Pousser</button>
+        <button className="btn" onClick={()=>doPull()}>Récupérer</button>
+      </div>
+      {sync.mode==="supabase" && (<div className="grid cols-2" style="margin-top:10px">
+        <div><label>Supabase URL</label><input value={sync.supabaseUrl} onChange={e=>setSync({...sync,supabaseUrl:e.target.value})} placeholder="https://YOUR-PROJECT.supabase.co"/></div>
+        <div><label>Anon Key</label><input value={sync.supabaseAnon} onChange={e=>setSync({...sync,supabaseAnon:e.target.value})} placeholder="ey..."/></div>
+        <div><label>Table</label><input value={sync.table} onChange={e=>setSync({...sync,table:e.target.value})} placeholder="musclepilot_logs"/></div>
+        <div className="hint">Table REST : id text (PK), data jsonb. Ligne unique id='singleton'.</div>
+      </div>)}
+      {sync.mode==="sheets" && (<div className="grid cols-2" style="margin-top:10px">
+        <div><label>Webhook (Apps Script)</label><input value={sync.sheetsWebhook} onChange={e=>setSync({...sync,sheetsWebhook:e.target.value})} placeholder="https://script.google.com/macros/s/XXXX/exec"/></div>
+        <div className="hint">Le script reçoit un JSON et l’écrit dans une feuille.</div>
+      </div>)}
+    </div>)}
+
+    {tab==="coach" && (<div className="card">
+      <b>Mode coaching</b>
+      <div className="row"><label>Activer</label>
+        <select value={String(coach.enabled)} onChange={e=>setCoach({...coach,enabled:e.target.value==='true'})}>
+          <option value="true">Oui</option><option value="false">Non</option>
+        </select>
+      </div>
+      <div className="grid cols-2" style="margin-top:10px">
+        <div><label>Alerte “sous la cible” quand Reste ≤</label><input type="number" value={coach.lowThresh} onChange={e=>setCoach({...coach,lowThresh:+e.target.value})}/></div>
+        <div><label>Alerte “au-dessus” quand Reste ≥</label><input type="number" value={coach.highThresh} onChange={e=>setCoach({...coach,highThresh:+e.target.value})}/></div>
+      </div>
+      <div className="hint">Notifications locales + vibration (si autorisées).</div>
+    </div>)}
+
+    {tab==="export" && (<div className="card">
+      <b>Import / Export</b>
+      <div className="row">
+        <button className="btn" onClick={()=>{ const data={profile,cfg,coach,days}; const blob=new Blob([JSON.stringify(data)],{type:"application/json"}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='musclepilot_backup.json'; a.click(); URL.revokeObjectURL(url); }}>Export JSON</button>
+        <button className="btn" onClick={()=>{ const rows=[["Date","Food","Grams","kcal","Protein","Carbs","Fat","Barcode"]];
+          Object.entries(days).forEach(([dk,d])=>{ (d.foods||[]).forEach(f=>rows.push([dk,f.name||"",f.grams||"",f.kcal||"",f.protein||"",f.carbs||"",f.fat||"",f.barcode||""])) });
+          const csv=rows.map(r=>r.join(",")).join("\n"); const blob=new Blob([csv],{type:"text/csv"}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='musclepilot_foods.csv'; a.click(); URL.revokeObjectURL(url); }}>Export CSV</button>
+      </div>
+      <div className="card" style="margin-top:12px">
+        <b>Importer JSON</b>
+        <textarea id="importArea" rows="6" placeholder='Colle ici un JSON exporté' style="width:100%"></textarea>
+        <div className="row" style="margin-top:8px">
+          <button className="btn" onClick={()=>{ try{ const txt=document.getElementById('importArea').value; const data=JSON.parse(txt);
+            if(confirm("Fusionner (OK) ou Remplacer (Annuler) ?")){ localStorage.setItem('mp_v2_prof', JSON.stringify(data.profile||{})); localStorage.setItem('mp_v2_cfg', JSON.stringify(data.cfg||{})); localStorage.setItem('mp_v2_coach', JSON.stringify(data.coach||{})); localStorage.setItem('mp_v2_days', JSON.stringify({...JSON.parse(localStorage.getItem('mp_v2_days')||'{}'), ...(data.days||{})})); }
+            else { localStorage.setItem('mp_v2_prof', JSON.stringify(data.profile||{})); localStorage.setItem('mp_v2_cfg', JSON.stringify(data.cfg||{})); localStorage.setItem('mp_v2_coach', JSON.stringify(data.coach||{})); localStorage.setItem('mp_v2_days', JSON.stringify(data.days||{})); }
+            alert("Import effectué. Recharge la page."); }catch(e){ alert("JSON invalide: "+e.message); } }}>Importer</button>
+        </div>
+      </div>
+    </div>)}
+  </div>);
+}
+
+function FoodForm({onAdd}){ const [name,setName]=useState(""),[kcal,setKcal]=useState(""),[p,setP]=useState(""),[c,setC]=useState(""),[f,setF]=useState(""),[g,setG]=useState(""); return (
+  <div className="grid cols-3">
+    <div><label>Nom</label><input value={name} onChange={e=>setName(e.target.value)} placeholder="Aliment" /></div>
+    <div><label>kcal</label><input type="number" value={kcal} onChange={e=>setKcal(+e.target.value)} /></div>
+    <div><label>Prot (g)</label><input type="number" value={p} onChange={e=>setP(+e.target.value)} /></div>
+    <div><label>Gluc (g)</label><input type="number" value={c} onChange={e=>setC(+e.target.value)} /></div>
+    <div><label>Lip (g)</label><input type="number" value={f} onChange={e=>setF(+e.target.value)} /></div>
+    <div><label>Grammage (g)</label><input type="number" value={g} onChange={e=>setG(+e.target.value)} /></div>
+    <div className="row" style="align-items:end">
+      <button className="btn primary" onClick={()=>{ onAdd({name,kcal:+kcal||0,protein:+p||0,carbs:+c||0,fat:+f||0,grams:+g||null}); setName('');setKcal('');setP('');setC('');setF('');setG(''); }}>Ajouter</button>
+    </div>
+  </div>
+)}
+
+function BarcodeBlock({onAdd}){ const [barcode,setBarcode]=useState(""),[status,setStatus]=useState("Prêt"); const videoRef=useRef(null),[grams,setGrams]=useState(100);
+  async function doScan(){ setStatus("Scan en cours…"); scanBarcode(videoRef.current,(code)=>{setBarcode(code);setStatus("Code détecté : "+code)},(err)=>setStatus("Erreur: "+err)) }
+  async function lookup(){ try{ setStatus("Recherche OFF…"); const info=await fetchOFF(barcode); if(!info){ setStatus("Produit non trouvé"); return; } setStatus("Trouvé : "+(info.name||""));
+    const factor=(+grams||100)/100; onAdd({ name:info.name||"Produit OFF", kcal:(info.kcalPer100||0)*factor, protein:(info.proteinPer100||0)*factor, carbs:(info.carbsPer100||0)*factor, fat:(info.fatPer100||0)*factor, grams:+grams||100, barcode }); }catch(e){ setStatus("Erreur OFF"); } }
+  return (<div className="card"><b>Scan code-barres</b>
+    <div className="row" style="margin-top:6px">
+      <button className="btn" onClick={doScan}>Activer la caméra</button>
+      <input placeholder="Code-barres" value={barcode} onChange={e=>setBarcode(e.target.value)} />
+      <input type="number" value={grams} onChange={e=>setGrams(+e.target.value)} /><span className="small">g</span>
+      <button className="btn primary" onClick={lookup}>Ajouter depuis OFF</button>
+    </div>
+    <video ref={videoRef} style="width:100%;border:1px solid var(--border);border-radius:8px;margin-top:8px" muted playsInline></video>
+    <div className="hint">{status}</div>
+  </div>) }
+
+function PhotoBlock({onAdd}){ const [photo,setPhoto]=useState(null),[preset,setPreset]=useState("none"),[grams,setGrams]=useState(300),[kcal,setKcal]=useState(0),[p,setP]=useState(0),[c,setC]=useState(0),[f,setF]=useState(0);
+  useEffect(()=>{ const per100={"none":{k:0,p:0,c:0,f:0},"chicken_rice":{k:165,p:31,c:0,f:3.6},"pasta_bolo":{k:150,p:7,c:22,f:4},"salmon_potatoes":{k:200,p:18,c:10,f:10},"salad_olive":{k:120,p:3,c:10,f:8}}[preset]; const factor=(+grams||100)/100;
+    setKcal(Math.round(per100.k*factor)); setP(Number((per100.p*factor).toFixed(1))); setC(Number((per100.c*factor).toFixed(1))); setF(Number((per100.f*factor).toFixed(1))); },[preset,grams]);
+  function onFile(e){ const file=e.target.files?.[0]; if(!file) return; const rdr=new FileReader(); rdr.onload=()=>setPhoto(rdr.result); rdr.readAsDataURL(file); }
+  return (<div className="card"><b>Photo du plat (estimation)</b>
+    <div className="grid cols-3" style="margin-top:6px">
+      <div><label>Photo</label><input type="file" accept="image/*" onChange={onFile} /></div>
+      <div><label>Preset</label><select value={preset} onChange={e=>setPreset(e.target.value)}>
+        <option value="none">—</option><option value="chicken_rice">Poulet & riz (100g)</option><option value="pasta_bolo">Pâtes bolo (100g)</option>
+        <option value="salmon_potatoes">Saumon & pommes (100g)</option><option value="salad_olive">Salade + huile (100g)</option>
+      </select></div>
+      <div><label>Grammage (g)</label><input type="number" value={grams} onChange={e=>setGrams(+e.target.value)} /></div>
+      <div><label>kcal</label><input type="number" value={kcal} onChange={e=>setKcal(+e.target.value)} /></div>
+      <div><label>Prot (g)</label><input type="number" value={p} onChange={e=>setP(+e.target.value)} /></div>
+      <div><label>Gluc (g)</label><input type="number" value={c} onChange={e=>setC(+e.target.value)} /></div>
+      <div><label>Lip (g)</label><input type="number" value={f} onChange={e=>setF(+e.target.value)} /></div>
+    </div>
+    <div className="row" style="margin-top:8px">
+      <button className="btn primary" onClick={()=>onAdd({name:"Plat (photo)",grams,kcal,protein:p,carbs:c,fat:f,photoDataUrl:photo})}>Ajouter le plat</button>
+      {photo? <a className="btn" href={photo} target="_blank" rel="noreferrer">Voir photo</a>: null}
+    </div>
+  </div>) }
+const root=ReactDOM.createRoot(document.getElementById('root')); root.render(<App/>);
+</script>
+</body>
+</html>

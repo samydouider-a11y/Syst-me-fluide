@@ -1,0 +1,21 @@
+{
+  "name": "MusclePilot — Dark Knight v2 (MAX)",
+  "short_name": "MP Dark v2",
+  "description": "Programme + tracker pas/calories (scan code-barres, photo presets), coaching, synchro Supabase/Sheets, import/export. PWA hors-ligne.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0a0e18",
+  "theme_color": "#00a8ff",
+  "icons": [
+    {
+      "src": "icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
